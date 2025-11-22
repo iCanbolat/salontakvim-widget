@@ -37,7 +37,7 @@ export function TimeSlots({
           disabled={!slot.available}
           onClick={() => slot.available && onSelectTime(slot.startTime)}
           className={cn(
-            "h-9 min-w-[4.5rem]",
+            "h-9 min-w-18",
             !slot.available && "opacity-40 cursor-not-allowed"
           )}
         >

@@ -69,7 +69,11 @@ export function StepsLayout({
             }}
           >
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div
+              className={`flex-1 overflow-y-auto p-6 ${
+                state.currentStep === "confirmation" ? "" : "mb-24"
+              }`}
+            >
               <div>{children}</div>
             </div>
 
@@ -117,9 +121,7 @@ export function StepsLayout({
             )}
 
             {/* Step Content */}
-            <div className="bg-card rounded-lg border p-4">
-              {children}
-            </div>
+            <div className="bg-card rounded-lg border p-4">{children}</div>
           </div>
 
           {/* Navigation Buttons - Fixed at bottom of viewport */}

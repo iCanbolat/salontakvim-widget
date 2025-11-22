@@ -3,6 +3,7 @@
  * Main widget component that renders current step based on booking state
  */
 
+import { useEffect } from "react";
 import { useBooking, useWidget } from "@/contexts";
 import { StepsLayout } from "./layout";
 import {
@@ -15,13 +16,23 @@ import {
   ConfirmationStep,
 } from "./steps";
 import { LoadingSpinner } from "./shared";
+import type { BookingStep } from "@/types";
 
 export function BookingWidget() {
   const { config, isLoading, error } = useWidget();
-  const { state } = useBooking();
+  const { state, nextStep } = useBooking();
 
-  console.log(config);
-  
+  // Auto-skip disabled steps
+  useEffect(() => {
+    if (!config?.sidebarMenuItems) return;
+
+    const currentStep = state.currentStep;
+
+    // Skip if current step is disabled (except confirmation which is always shown)
+    if (currentStep !== "confirmation" && !isStepEnabled(currentStep)) {
+      nextStep();
+    }
+  }, [state.currentStep, config?.sidebarMenuItems, nextStep]);
 
   // Loading state
   if (isLoading) {
@@ -66,8 +77,35 @@ export function BookingWidget() {
     );
   }
 
-  // Render current step
+  const isStepEnabled = (step: BookingStep) => {
+    const sidebarConfig = config?.sidebarMenuItems as
+      | Partial<Record<BookingStep, boolean>>
+      | undefined;
+
+    if (!sidebarConfig) {
+      return true;
+    }
+
+    if (step === "confirmation") {
+      return true;
+    }
+
+    return sidebarConfig[step] !== false;
+  };
+
   const renderStep = () => {
+    // Check if step is disabled in config
+    const isStepDisabled =
+      state.currentStep !== "confirmation" && !isStepEnabled(state.currentStep);
+
+    if (isStepDisabled) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner size="lg" text="Loading next step..." />
+        </div>
+      );
+    }
+
     switch (state.currentStep) {
       case "service":
         return <ServiceSelection />;
@@ -87,6 +125,15 @@ export function BookingWidget() {
       case "customerInfo":
         return <CustomerInfoStep />;
 
+      case "payment":
+        // Payment step component would go here
+        // For now, show a placeholder or auto-skip via useEffect
+        return (
+          <div className="text-center py-12">
+            <LoadingSpinner size="lg" text="Processing payment..." />
+          </div>
+        );
+
       case "confirmation":
         return <ConfirmationStep />;
 
@@ -101,7 +148,6 @@ export function BookingWidget() {
     }
   };
 
-  // Use layout based on config
   return (
     <StepsLayout showProgressBar={config.settings.showProgressBar}>
       {renderStep()}

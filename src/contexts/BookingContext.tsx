@@ -9,6 +9,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
   type ReactNode,
 } from "react";
 import type {
@@ -28,7 +29,8 @@ import type {
 import { useWidget } from "./WidgetContext";
 import { validationService, storageService } from "@/services";
 
-const BOOKING_STEPS: BookingStep[] = [
+// All possible booking steps
+const ALL_BOOKING_STEPS: BookingStep[] = [
   "service",
   "employee",
   "location",
@@ -128,7 +130,20 @@ export function BookingProvider({ children }: BookingProviderProps) {
   const { config, widgetKey } = useWidget();
   const [state, setState] = useState<AppointmentState>(initialState);
 
-  const currentStepIndex = BOOKING_STEPS.indexOf(state.currentStep);
+  // Calculate active booking steps based on config
+  const bookingSteps = useMemo(() => {
+    if (!config?.sidebarMenuItems) return ALL_BOOKING_STEPS;
+
+    return ALL_BOOKING_STEPS.filter((step) => {
+      // Always include confirmation
+      if (step === "confirmation") return true;
+
+      // Check if step is enabled in config
+      return config.sidebarMenuItems[step] !== false;
+    });
+  }, [config?.sidebarMenuItems]);
+
+  const currentStepIndex = bookingSteps.indexOf(state.currentStep);
 
   /**
    * Check if can go to next step (validation)
@@ -169,16 +184,20 @@ export function BookingProvider({ children }: BookingProviderProps) {
     if (!canGoNext()) return;
 
     const nextIndex = currentStepIndex + 1;
-    if (nextIndex < BOOKING_STEPS.length) {
-      const nextStep = BOOKING_STEPS[nextIndex];
-      setState((prev: AppointmentState) => ({
-        ...prev,
-        currentStep: nextStep,
-        completedSteps: [...prev.completedSteps, prev.currentStep],
-      }));
-      saveDraft();
+    if (nextIndex < bookingSteps.length) {
+      const nextStep = bookingSteps[nextIndex];
+      setState((prev: AppointmentState) => {
+        const newState = {
+          ...prev,
+          currentStep: nextStep,
+          completedSteps: [...prev.completedSteps, prev.currentStep],
+        };
+        // Save draft with new state
+        storageService.saveDraft(widgetKey, newState);
+        return newState;
+      });
     }
-  }, [canGoNext, currentStepIndex]);
+  }, [canGoNext, currentStepIndex, bookingSteps, widgetKey]);
 
   /**
    * Go to previous step
@@ -188,10 +207,10 @@ export function BookingProvider({ children }: BookingProviderProps) {
 
     const prevIndex = currentStepIndex - 1;
     if (prevIndex >= 0) {
-      const prevStep = BOOKING_STEPS[prevIndex];
+      const prevStep = bookingSteps[prevIndex];
       goToStep(prevStep);
     }
-  }, [canGoPrev, currentStepIndex, goToStep]);
+  }, [canGoPrev, currentStepIndex, goToStep, bookingSteps]);
 
   /**
    * Select service

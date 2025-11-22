@@ -67,7 +67,7 @@ export function MobileHeader({ showBackButton = true }: MobileHeaderProps) {
               <SheetTitle>Booking Steps</SheetTitle>
             </SheetHeader>
             <div className="mt-4">
-              <Sidebar />
+              <Sidebar isCollapsed={false} onToggle={() => {}} />
             </div>
           </SheetContent>
         </Sheet>

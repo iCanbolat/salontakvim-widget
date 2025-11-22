@@ -1,8 +1,28 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { useWidget } from "@/contexts";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({
+  className,
+  type,
+  style,
+  ...props
+}: React.ComponentProps<"input">) {
+  const { config } = useWidget();
+  const primaryColor = config?.styling.primaryColor;
+
+  const dynamicStyle = React.useMemo(() => {
+    if (!primaryColor) return style;
+
+    const cssVars = {
+      "--ring": primaryColor,
+      "--primary": primaryColor,
+    } as React.CSSProperties;
+
+    return style ? { ...cssVars, ...style } : cssVars;
+  }, [primaryColor, style]);
+
   return (
     <input
       type={type}
@@ -13,9 +33,10 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         className
       )}
+      style={dynamicStyle}
       {...props}
     />
-  )
+  );
 }
 
-export { Input }
+export { Input };

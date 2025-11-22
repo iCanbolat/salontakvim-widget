@@ -3,8 +3,10 @@
  * Form for customer personal information
  */
 
+import type { CSSProperties } from "react";
 import { FormField } from "@/components/shared";
 import { Input } from "@/components/ui/input";
+import { useWidget } from "@/contexts";
 import type { CustomerInfo } from "@/types";
 
 interface PersonalInfoFormProps {
@@ -24,6 +26,9 @@ export function PersonalInfoForm({
   onChange,
   fieldRequirements,
 }: PersonalInfoFormProps) {
+  const { config } = useWidget();
+  const primaryColor = config?.styling.primaryColor;
+
   return (
     <div className="space-y-4">
       {/* First Name */}
@@ -105,6 +110,11 @@ export function PersonalInfoForm({
           placeholder="Tell us anything we should know..."
           value={values.notes || ""}
           onChange={(e) => onChange("notes", e.target.value)}
+          style={
+            primaryColor
+              ? ({ "--ring": primaryColor } as CSSProperties)
+              : undefined
+          }
         />
       </FormField>
     </div>

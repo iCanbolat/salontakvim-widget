@@ -4,6 +4,7 @@
  */
 
 import { cn } from "@/lib/utils";
+import { useWidget } from "@/contexts";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
@@ -22,14 +23,21 @@ export function LoadingSpinner({
   className,
   text,
 }: LoadingSpinnerProps) {
+  const { config } = useWidget();
+  const primaryColor = config?.styling.primaryColor;
+
   return (
     <div className="flex flex-col items-center justify-center gap-2">
       <div
         className={cn(
-          "animate-spin rounded-full border-primary border-t-transparent",
+          "animate-spin rounded-full border-t-transparent",
           sizeClasses[size],
           className
         )}
+        style={{
+          borderColor: primaryColor || "var(--primary)",
+          borderTopColor: "transparent",
+        }}
         role="status"
         aria-label="Loading"
       />
