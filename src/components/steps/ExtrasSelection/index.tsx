@@ -13,44 +13,40 @@ import { formatPrice, calculateTotal } from "@/utils";
 import type { ServiceExtra, SelectedExtra } from "@/types";
 
 export function ExtrasSelection() {
-  const { config } = useWidget();
+  const { config, apiService } = useWidget();
   const { state, addExtra, clearExtras } = useBooking();
 
-  // Mock extras data - In real app, fetch from API based on selected service
-  const [extras] = useState<ServiceExtra[]>([
-    {
-      id: 1,
-      serviceId: state.selectedService?.service.id || 0,
-      name: "Deep Conditioning Treatment",
-      description: "Intensive moisture treatment for dry and damaged hair",
-      price: 25,
-      duration: 15,
-      maxQuantity: 1,
-      position: 1,
-    },
-    {
-      id: 2,
-      serviceId: state.selectedService?.service.id || 0,
-      name: "Scalp Massage",
-      description: "Relaxing scalp massage to improve circulation",
-      price: 15,
-      duration: 10,
-      maxQuantity: 2,
-      position: 2,
-    },
-    {
-      id: 3,
-      serviceId: state.selectedService?.service.id || 0,
-      name: "Hair Styling",
-      description: "Professional blow-dry and styling",
-      price: 30,
-      duration: 20,
-      maxQuantity: 1,
-      position: 3,
-    },
-  ]);
+  const [extras, setExtras] = useState<ServiceExtra[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [isLoading] = useState(false);
+  // Fetch extras from API when component mounts or service changes
+  useEffect(() => {
+    const fetchExtras = async () => {
+      if (!apiService || !state.selectedService?.service.id) {
+        setExtras([]);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await apiService.getServiceExtras(
+          state.selectedService.service.id
+        );
+        setExtras(response.extras || []);
+      } catch (err) {
+        console.error("Failed to fetch extras:", err);
+        setError("Failed to load extras");
+        setExtras([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExtras();
+  }, [apiService, state.selectedService?.service.id]);
 
   // Initialize quantities from context
   const [quantities, setQuantities] = useState<Record<number, number>>(() => {
@@ -99,6 +95,37 @@ export function ExtrasSelection() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" text="Loading extras..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold">Add Extras</h2>
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // No extras available for this service
+  if (extras.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold">
+            Add Extras
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              (Optional)
+            </span>
+          </h2>
+          <p className="text-muted-foreground">
+            No extras available for this service. You can proceed to the next
+            step.
+          </p>
+        </div>
       </div>
     );
   }

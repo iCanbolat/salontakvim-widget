@@ -6,6 +6,7 @@
 import type {
   WidgetConfig,
   ServiceResponse,
+  ServiceExtrasResponse,
   StaffResponse,
   LocationResponse,
   AvailabilityResponse,
@@ -153,6 +154,15 @@ export class ApiService {
   async getServices(): Promise<ServiceResponse> {
     const url = this.buildUrl("/services");
     return fetchWithRetry<ServiceResponse>(url);
+  }
+
+  /**
+   * Get service extras
+   * @param serviceId - Service ID to get extras for
+   */
+  async getServiceExtras(serviceId: number): Promise<ServiceExtrasResponse> {
+    const url = this.buildUrl(`/services/${serviceId}/extras`);
+    return fetchWithRetry<ServiceExtrasResponse>(url);
   }
 
   /**

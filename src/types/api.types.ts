@@ -54,6 +54,11 @@ export interface ServiceResponse {
   categories?: ServiceCategory[];
 }
 
+// Service Extras response
+export interface ServiceExtrasResponse {
+  extras: ServiceExtra[];
+}
+
 // Staff related types
 export interface Staff {
   id: number;

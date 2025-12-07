@@ -23,6 +23,7 @@ export type {
   Service,
   ServiceExtra,
   ServiceResponse,
+  ServiceExtrasResponse,
   Staff,
   StaffResponse,
   Location,
