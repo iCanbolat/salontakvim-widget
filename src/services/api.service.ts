@@ -151,8 +151,9 @@ export class ApiService {
   /**
    * Get available services
    */
-  async getServices(): Promise<ServiceResponse> {
-    const url = this.buildUrl("/services");
+  async getServices(locationId?: number): Promise<ServiceResponse> {
+    const params = locationId ? `?locationId=${locationId}` : "";
+    const url = this.buildUrl(`/services${params}`);
     return fetchWithRetry<ServiceResponse>(url);
   }
 
@@ -169,9 +170,15 @@ export class ApiService {
    * Get staff members
    * @param serviceId - Optional filter by service
    */
-  async getStaff(serviceId?: number): Promise<StaffResponse> {
-    const params = serviceId ? `?serviceId=${serviceId}` : "";
-    const url = this.buildUrl(`/staff${params}`);
+  async getStaff(
+    serviceId?: number,
+    locationId?: number
+  ): Promise<StaffResponse> {
+    const params = new URLSearchParams();
+    if (serviceId) params.append("serviceId", serviceId.toString());
+    if (locationId) params.append("locationId", locationId.toString());
+    const query = params.toString();
+    const url = this.buildUrl(query ? `/staff?${query}` : "/staff");
     return fetchWithRetry<StaffResponse>(url);
   }
 

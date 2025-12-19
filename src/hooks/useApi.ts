@@ -71,14 +71,17 @@ export function useApi<T extends ApiDataType>(
 /**
  * Hook to fetch services
  */
-export function useServices(options: UseApiOptions<ServiceResponse> = {}) {
+export function useServices(
+  locationId?: number,
+  options: UseApiOptions<ServiceResponse> = {}
+) {
   const { apiService } = useWidget();
 
   return useApi<ServiceResponse>(() => {
     if (!apiService) {
       throw new Error("API service not initialized");
     }
-    return apiService.getServices();
+    return apiService.getServices(locationId);
   }, options);
 }
 
@@ -87,6 +90,7 @@ export function useServices(options: UseApiOptions<ServiceResponse> = {}) {
  */
 export function useStaff(
   serviceId?: number,
+  locationId?: number,
   options: UseApiOptions<StaffResponse> = {}
 ) {
   const { apiService } = useWidget();
@@ -95,7 +99,7 @@ export function useStaff(
     if (!apiService) {
       throw new Error("API service not initialized");
     }
-    return apiService.getStaff(serviceId);
+    return apiService.getStaff(serviceId, locationId);
   }, options);
 }
 

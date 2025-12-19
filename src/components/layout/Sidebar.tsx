@@ -11,9 +11,9 @@ import type { BookingStep } from "@/types";
 import { useMemo } from "react";
 
 const STEP_LABELS: Record<BookingStep, string> = {
+  location: "Choose Location",
   service: "Choose Service",
   employee: "Select Staff",
-  location: "Choose Location",
   dateTime: "Pick Date & Time",
   customerInfo: "Your Information",
   extras: "Add Extras",
@@ -23,9 +23,9 @@ const STEP_LABELS: Record<BookingStep, string> = {
 
 // Define the order of steps
 const STEP_ORDER: BookingStep[] = [
+  "location",
   "service",
   "employee",
-  "location",
   "extras",
   "dateTime",
   "customerInfo",

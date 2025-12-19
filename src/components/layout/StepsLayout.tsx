@@ -34,6 +34,9 @@ export function StepsLayout({
   const { config } = useWidget();
   const { state, canGoNext, canGoPrev, nextStep, prevStep } = useBooking();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const navigationStyle = {
+    backgroundColor: config?.styling.sidebarBackgroundColor || undefined,
+  };
 
   const currentStepLabel = STEP_LABELS[state.currentStep] || "Unknown Step";
   const showNavigation = state.currentStep !== "confirmation";
@@ -79,7 +82,10 @@ export function StepsLayout({
 
             {/* Navigation Buttons - Fixed at bottom */}
             {showNavigation && (
-              <div className="absolute bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 p-4">
+              <div
+                className="absolute bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 p-4"
+                style={navigationStyle}
+              >
                 <div className="flex items-center justify-between gap-3">
                   <Button
                     variant="ghost"
@@ -114,9 +120,7 @@ export function StepsLayout({
             {showProgressBar && config?.settings.showProgressBar && (
               <div className="space-y-1.5 mb-4">
                 <ProgressBar showPercentage={false} />
-                <h2 className="text-lg font-semibold text-foreground">
-                  {currentStepLabel}
-                </h2>
+                <h2 className="text-lg font-semibold">{currentStepLabel}</h2>
               </div>
             )}
 
@@ -126,7 +130,10 @@ export function StepsLayout({
 
           {/* Navigation Buttons - Fixed at bottom of viewport */}
           {showNavigation && (
-            <div className="sticky bottom-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 p-4">
+            <div
+              className="sticky bottom-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 p-4"
+              style={navigationStyle}
+            >
               <div className="flex items-center justify-between gap-3">
                 <Button
                   variant="ghost"

@@ -31,9 +31,9 @@ import { validationService, storageService } from "@/services";
 
 // All possible booking steps
 const ALL_BOOKING_STEPS: BookingStep[] = [
+  "location",
   "service",
   "employee",
-  "location",
   "extras",
   "dateTime",
   "customerInfo",
@@ -103,7 +103,7 @@ interface BookingProviderProps {
 }
 
 const initialState: AppointmentState = {
-  currentStep: "service",
+  currentStep: "location",
   completedSteps: [],
   selectedService: null,
   selectedStaff: null,
@@ -143,7 +143,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
     });
   }, [config?.sidebarMenuItems]);
 
-  const currentStepIndex = bookingSteps.indexOf(state.currentStep);
+  const currentStepIndex = Math.max(bookingSteps.indexOf(state.currentStep), 0);
 
   /**
    * Check if can go to next step (validation)
@@ -221,7 +221,6 @@ export function BookingProvider({ children }: BookingProviderProps) {
       selectedService: service,
       // Clear dependent selections
       selectedStaff: null,
-      selectedLocation: null,
       selectedExtras: [],
       selectedDateTime: null,
     }));
@@ -235,7 +234,6 @@ export function BookingProvider({ children }: BookingProviderProps) {
       ...prev,
       selectedService: null,
       selectedStaff: null,
-      selectedLocation: null,
       selectedExtras: [],
       selectedDateTime: null,
     }));
@@ -272,6 +270,9 @@ export function BookingProvider({ children }: BookingProviderProps) {
       ...prev,
       selectedLocation: location,
       // Clear dependent selections
+      selectedService: null,
+      selectedStaff: null,
+      selectedExtras: [],
       selectedDateTime: null,
     }));
   }, []);
@@ -283,6 +284,9 @@ export function BookingProvider({ children }: BookingProviderProps) {
     setState((prev: AppointmentState) => ({
       ...prev,
       selectedLocation: null,
+      selectedService: null,
+      selectedStaff: null,
+      selectedExtras: [],
       selectedDateTime: null,
     }));
   }, []);

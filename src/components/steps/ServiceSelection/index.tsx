@@ -15,7 +15,17 @@ import type { Service } from "@/types";
 export function ServiceSelection() {
   const { config } = useWidget();
   const { state, selectService } = useBooking();
-  const { data: servicesData, isLoading, error } = useServices();
+
+  const selectedLocationId = state.selectedLocation?.location?.id;
+  const hasLocationSelection = Boolean(state.selectedLocation);
+
+  const {
+    data: servicesData,
+    isLoading,
+    error,
+  } = useServices(selectedLocationId, {
+    enabled: hasLocationSelection,
+  });
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
@@ -58,6 +68,14 @@ export function ServiceSelection() {
       categoryName,
     });
   };
+
+  if (!hasLocationSelection) {
+    return (
+      <div className="flex items-center justify-center min-h-[320px] text-sm text-muted-foreground">
+        Please select a location to see available services.
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <ServiceSkeleton />;

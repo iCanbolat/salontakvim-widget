@@ -3,7 +3,7 @@
  * Main widget component that renders current step based on booking state
  */
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useBooking, useWidget } from "@/contexts";
 import { StepsLayout } from "./layout";
 import {
@@ -17,10 +17,26 @@ import {
 } from "./steps";
 import { LoadingSpinner } from "./shared";
 import type { BookingStep } from "@/types";
+import { cn } from "@/lib/utils";
 
 export function BookingWidget() {
   const { config, isLoading, error } = useWidget();
-  const { state, nextStep } = useBooking();
+  const { state, nextStep, currentStepIndex } = useBooking();
+  const [direction, setDirection] = useState<"forward" | "backward" | null>(
+    null
+  );
+  const prevStepIndexRef = useRef(currentStepIndex);
+
+  // Track navigation direction for entrance animation (sync before paint to avoid flicker)
+  useLayoutEffect(() => {
+    const prevIndex = prevStepIndexRef.current;
+    if (currentStepIndex > prevIndex) {
+      setDirection("forward");
+    } else if (currentStepIndex < prevIndex) {
+      setDirection("backward");
+    }
+    prevStepIndexRef.current = currentStepIndex;
+  }, [currentStepIndex]);
 
   // Auto-skip disabled steps
   useEffect(() => {
@@ -148,9 +164,27 @@ export function BookingWidget() {
     }
   };
 
+  const containerRadius = config?.styling?.buttonBorderRadius ?? 12;
+
   return (
-    <StepsLayout showProgressBar={config.settings.showProgressBar}>
-      {renderStep()}
-    </StepsLayout>
+    <div
+      className="border shadow-lg overflow-hidden"
+      style={{
+        borderRadius: `${containerRadius}px`,
+      }}
+    >
+      <StepsLayout showProgressBar={config.settings.showProgressBar}>
+        <div
+          key={state.currentStep}
+          className={cn(
+            "step-transition",
+            direction === "forward" && "step-enter-from-right",
+            direction === "backward" && "step-enter-from-left"
+          )}
+        >
+          {renderStep()}
+        </div>
+      </StepsLayout>
+    </div>
   );
 }

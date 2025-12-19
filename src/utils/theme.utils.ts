@@ -18,6 +18,8 @@ export function applyTheme(theme: ThemeConfig): void {
 
   if (theme.secondaryColor) {
     root.style.setProperty("--secondary", theme.secondaryColor);
+    // Use secondary color as the foreground for primary surfaces (e.g., button text)
+    root.style.setProperty("--primary-foreground", theme.secondaryColor);
   }
 
   if (theme.sidebarBackgroundColor) {
@@ -102,6 +104,7 @@ export function resetTheme(): void {
   const properties = [
     "--primary",
     "--secondary",
+    "--primary-foreground",
     "--sidebar-bg",
     "--content-bg",
     "--foreground",

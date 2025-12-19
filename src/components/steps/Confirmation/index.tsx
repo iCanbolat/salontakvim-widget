@@ -13,7 +13,7 @@ import type { CreateAppointmentRequest } from "@/types";
 
 export function ConfirmationStep() {
   const { config, apiService } = useWidget();
-  const { state, resetBooking } = useBooking();
+  const { state, resetBooking, prevStep } = useBooking();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -155,11 +155,7 @@ export function ConfirmationStep() {
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-        <Button
-          variant="outline"
-          onClick={() => window.history.back()}
-          disabled={isSubmitting}
-        >
+        <Button variant="outline" onClick={prevStep} disabled={isSubmitting}>
           Go Back
         </Button>
         <Button

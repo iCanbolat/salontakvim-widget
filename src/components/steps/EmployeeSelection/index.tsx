@@ -13,7 +13,17 @@ import type { Staff } from "@/types";
 export function EmployeeSelection() {
   const { config } = useWidget();
   const { state, selectStaff } = useBooking();
-  const { data: staffData, isLoading, error } = useStaff();
+  const serviceId = state.selectedService?.service.id;
+  const locationId = state.selectedLocation?.location?.id;
+  const hasServiceSelection = Boolean(state.selectedService);
+
+  const {
+    data: staffData,
+    isLoading,
+    error,
+  } = useStaff(serviceId, locationId, {
+    enabled: hasServiceSelection,
+  });
 
   const isRequired = config?.fieldRequirements.employeeRequired || false;
 
@@ -38,6 +48,14 @@ export function EmployeeSelection() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRequired, staffData]);
+
+  if (!hasServiceSelection) {
+    return (
+      <div className="flex items-center justify-center min-h-[320px] text-sm text-muted-foreground">
+        Please select a service to choose a staff member.
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <StaffSkeleton />;

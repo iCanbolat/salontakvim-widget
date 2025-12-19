@@ -189,16 +189,6 @@ export function ExtrasSelection() {
           </div>
         </>
       )}
-
-      {/* Skip Button */}
-      <div className="flex justify-end">
-        <Button
-          variant={selectedExtras.length > 0 ? "outline" : "default"}
-          onClick={() => clearExtras()}
-        >
-          {selectedExtras.length > 0 ? "Clear All" : "Skip Extras"}
-        </Button>
-      </div>
     </div>
   );
 }

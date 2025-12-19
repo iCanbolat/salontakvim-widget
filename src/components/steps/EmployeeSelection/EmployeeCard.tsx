@@ -18,6 +18,8 @@ export function EmployeeCard({
   isSelected,
   onSelect,
 }: EmployeeCardProps) {
+  console.log(staff);
+  
   return (
     <button
       className={cn(

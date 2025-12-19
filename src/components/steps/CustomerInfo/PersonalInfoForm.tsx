@@ -9,10 +9,28 @@ import { Input } from "@/components/ui/input";
 import { useWidget } from "@/contexts";
 import type { CustomerInfo } from "@/types";
 
+/**
+ * Format Turkish GSM phone number as (5XX) XXX XX XX
+ * Input: digits only (e.g., "5055710095")
+ * Output: formatted (e.g., "(505) 571 00 95")
+ */
+function formatTurkishPhone(digits: string): string {
+  if (!digits) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  if (digits.length <= 8)
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)} ${digits.slice(
+    6,
+    8
+  )} ${digits.slice(8)}`;
+}
+
 interface PersonalInfoFormProps {
   values: Partial<CustomerInfo>;
   errors: Partial<Record<keyof CustomerInfo, string>>;
   onChange: (field: keyof CustomerInfo, value: string) => void;
+  onBlurField?: (field: keyof CustomerInfo) => void;
   fieldRequirements: {
     lastNameRequired: boolean;
     emailRequired: boolean;
@@ -24,6 +42,7 @@ export function PersonalInfoForm({
   values,
   errors,
   onChange,
+  onBlurField,
   fieldRequirements,
 }: PersonalInfoFormProps) {
   const { config } = useWidget();
@@ -44,6 +63,7 @@ export function PersonalInfoForm({
           placeholder="John"
           value={values.firstName || ""}
           onChange={(e) => onChange("firstName", e.target.value)}
+          onBlur={() => onBlurField?.("firstName")}
         />
       </FormField>
 
@@ -60,6 +80,7 @@ export function PersonalInfoForm({
           placeholder="Doe"
           value={values.lastName || ""}
           onChange={(e) => onChange("lastName", e.target.value)}
+          onBlur={() => onBlurField?.("lastName")}
         />
       </FormField>
 
@@ -77,6 +98,7 @@ export function PersonalInfoForm({
           placeholder="john.doe@example.com"
           value={values.email || ""}
           onChange={(e) => onChange("email", e.target.value)}
+          onBlur={() => onBlurField?.("email")}
         />
       </FormField>
 
@@ -91,9 +113,19 @@ export function PersonalInfoForm({
         <Input
           id="phone"
           type="tel"
-          placeholder="+1 (555) 000-0000"
-          value={values.phone || ""}
-          onChange={(e) => onChange("phone", e.target.value)}
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="(5XX) XXX XX XX"
+          value={formatTurkishPhone(values.phone || "")}
+          onChange={(e) => {
+            const digitsOnly = e.target.value.replace(/\D+/g, "");
+            // Enforce Turkish GSM pattern: must start with 5, up to 10 digits total
+            const trimmed = digitsOnly.startsWith("5")
+              ? digitsOnly.slice(0, 10)
+              : digitsOnly.slice(0, 1);
+            onChange("phone", trimmed);
+          }}
+          onBlur={() => onBlurField?.("phone")}
         />
       </FormField>
 
@@ -110,6 +142,7 @@ export function PersonalInfoForm({
           placeholder="Tell us anything we should know..."
           value={values.notes || ""}
           onChange={(e) => onChange("notes", e.target.value)}
+          onBlur={() => onBlurField?.("notes")}
           style={
             primaryColor
               ? ({ "--ring": primaryColor } as CSSProperties)

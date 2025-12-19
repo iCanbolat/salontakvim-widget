@@ -3,7 +3,7 @@
  * Customer information collection step
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PersonalInfoForm } from "./PersonalInfoForm";
 import { Button } from "@/components/ui/button";
 import { useBooking, useWidget } from "@/contexts";
@@ -31,11 +31,47 @@ export function CustomerInfoStep() {
     phoneRequired: true,
   };
 
+  const computeErrors = useCallback(
+    (vals: Partial<CustomerInfo>) => {
+      const validationErrors: Partial<Record<keyof CustomerInfo, string>> = {};
+
+      if (!vals.firstName?.trim()) {
+        validationErrors.firstName = "First name is required";
+      }
+
+      if (fieldRequirements.lastNameRequired && !vals.lastName?.trim()) {
+        validationErrors.lastName = "Last name is required";
+      }
+
+      if (fieldRequirements.emailRequired) {
+        if (!vals.email?.trim()) {
+          validationErrors.email = "Email is required";
+        } else if (!validationService.isValidEmail(vals.email)) {
+          validationErrors.email = "Please enter a valid email address";
+        }
+      } else if (vals.email && !validationService.isValidEmail(vals.email)) {
+        validationErrors.email = "Please enter a valid email address";
+      }
+
+      if (fieldRequirements.phoneRequired) {
+        if (!vals.phone?.trim()) {
+          validationErrors.phone = "Phone number is required";
+        } else if (!validationService.isValidPhone(vals.phone)) {
+          validationErrors.phone = "Please enter a valid phone number";
+        }
+      } else if (vals.phone && !validationService.isValidPhone(vals.phone)) {
+        validationErrors.phone = "Please enter a valid phone number";
+      }
+
+      return validationErrors;
+    },
+    [fieldRequirements]
+  );
+
   const handleChange = (field: keyof CustomerInfo, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     setTouched((prev) => ({ ...prev, [field]: true }));
 
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -45,55 +81,34 @@ export function CustomerInfoStep() {
     }
   };
 
-  // Validate on blur or when moving to next step
+  const validateField = (field: keyof CustomerInfo) => {
+    const validationErrors = computeErrors(values);
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (validationErrors[field]) {
+        next[field] = validationErrors[field];
+      } else {
+        delete next[field];
+      }
+      return next;
+    });
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
   const validateForm = (): boolean => {
-    const validationErrors: Partial<Record<keyof CustomerInfo, string>> = {};
-
-    // First Name - always required
-    if (!values.firstName?.trim()) {
-      validationErrors.firstName = "First name is required";
-    }
-
-    // Last Name - conditionally required
-    if (fieldRequirements.lastNameRequired && !values.lastName?.trim()) {
-      validationErrors.lastName = "Last name is required";
-    }
-
-    // Email - conditionally required + format validation
-    if (fieldRequirements.emailRequired) {
-      if (!values.email?.trim()) {
-        validationErrors.email = "Email is required";
-      } else if (!validationService.isValidEmail(values.email)) {
-        validationErrors.email = "Please enter a valid email address";
-      }
-    } else if (values.email && !validationService.isValidEmail(values.email)) {
-      validationErrors.email = "Please enter a valid email address";
-    }
-
-    // Phone - conditionally required + format validation
-    if (fieldRequirements.phoneRequired) {
-      if (!values.phone?.trim()) {
-        validationErrors.phone = "Phone number is required";
-      } else if (!validationService.isValidPhone(values.phone)) {
-        validationErrors.phone = "Please enter a valid phone number";
-      }
-    } else if (values.phone && !validationService.isValidPhone(values.phone)) {
-      validationErrors.phone = "Please enter a valid phone number";
-    }
-
+    const validationErrors = computeErrors(values);
     setErrors(validationErrors);
     return Object.keys(validationErrors).length === 0;
   };
 
-  // Auto-save to context
+  // Save to context when form is currently valid
   useEffect(() => {
-    if (Object.values(touched).some(Boolean)) {
-      const isValid = validateForm();
-      if (isValid && values.firstName) {
-        setCustomerInfo(values as CustomerInfo);
-      }
+    const validationErrors = computeErrors(values);
+    const isValid = Object.keys(validationErrors).length === 0;
+    if (isValid) {
+      setCustomerInfo(values as CustomerInfo);
     }
-  }, [JSON.stringify(values)]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [values, computeErrors, setCustomerInfo]);
 
   return (
     <div className="space-y-6">
@@ -111,24 +126,11 @@ export function CustomerInfoStep() {
           values={values}
           errors={errors}
           onChange={handleChange}
+          onBlurField={validateField}
           fieldRequirements={fieldRequirements}
         />
-      </div>
-
-      {/* Validation Button (Optional - for testing) */}
-      <div className="flex justify-end max-w-2xl">
-        <Button
-          variant="outline"
-          onClick={() => {
-            const isValid = validateForm();
-            if (isValid) {
-              alert("Form is valid!");
-            }
-          }}
-        >
-          Validate Form
-        </Button>
       </div>
     </div>
   );
 }
+  

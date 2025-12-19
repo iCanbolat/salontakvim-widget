@@ -20,6 +20,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * Allows: +1234567890, +1 234 567 890, +1-234-567-890, etc.
  */
 const PHONE_REGEX = /^\+?[\d\s-()]+$/;
+const TURKEY_GSM_REGEX = /^5\d{9}$/;
 
 /**
  * Validation Service Class
@@ -36,8 +37,14 @@ export class ValidationService {
    * Validate phone format
    */
   isValidPhone(phone: string): boolean {
-    // Remove spaces and check minimum length
+    // Remove spaces and punctuation
     const cleaned = phone.replace(/[\s-()]/g, "");
+    // Prefer strict TR GSM when it matches
+    if (TURKEY_GSM_REGEX.test(cleaned)) {
+      return true;
+    }
+
+    // Fallback to generic check (kept for potential future use)
     return PHONE_REGEX.test(phone) && cleaned.length >= 10;
   }
 
@@ -132,9 +139,7 @@ export class ValidationService {
     hasLocation: boolean,
     isRequired: boolean
   ): StepValidation {
-    if (!isRequired) {
-      return { isValid: true, errors: [] };
-    }
+    const required = true; // location must be chosen for workflow
 
     return {
       isValid: hasLocation,
@@ -201,7 +206,7 @@ export class ValidationService {
       case "location":
         return this.validateLocationSelection(
           !!state.selectedLocation,
-          requirements.locationRequired
+          true // enforce location selection to proceed
         );
 
       case "extras":

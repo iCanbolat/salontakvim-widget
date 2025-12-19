@@ -6,6 +6,7 @@
 :root {
   --background: oklch(0.9911 0 0);
   --foreground: oklch(0.2046 0 0);
+  --heading: oklch(0.2046 0 0);
   --card: oklch(0.9911 0 0);
   --card-foreground: oklch(0.2046 0 0);
   --popover: oklch(0.9911 0 0);
@@ -67,6 +68,7 @@
 .dark {
   --background: oklch(0.1822 0 0);
   --foreground: oklch(0.9288 0.0126 255.5078);
+  --heading: oklch(0.9288 0.0126 255.5078);
   --card: oklch(0.2046 0 0);
   --card-foreground: oklch(0.9288 0.0126 255.5078);
   --popover: oklch(0.2603 0 0);
@@ -134,6 +136,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-heading: var(--heading);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -193,6 +196,15 @@
     letter-spacing: var(--tracking-normal);
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--heading, hsl(var(--foreground)));
+  }
+
   /* Minimal scrollbar for horizontal scroll */
   .scrollbar-thin::-webkit-scrollbar {
     height: 4px;
@@ -209,5 +221,40 @@
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground));
+  }
+
+  /* Step transition animations */
+  .step-transition {
+    will-change: opacity, transform;
+  }
+
+  @keyframes stepFadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes stepFadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .step-enter-from-right {
+    animation: stepFadeInRight 240ms ease both;
+  }
+
+  .step-enter-from-left {
+    animation: stepFadeInLeft 240ms ease both;
   }
 }

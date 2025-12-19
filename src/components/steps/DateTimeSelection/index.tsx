@@ -17,6 +17,9 @@ export function DateTimeSelection() {
     useBooking();
   const { apiService } = useWidget();
 
+  const serviceId = state.selectedService?.service.id;
+  const locationId = state.selectedLocation?.location?.id;
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     state.selectedDateTime?.date
       ? new Date(state.selectedDateTime.date)
@@ -28,22 +31,42 @@ export function DateTimeSelection() {
 
   // Get staffId - if "any employee" selected, fetch first available staff
   const [firstStaffId, setFirstStaffId] = useState<number | undefined>();
-  
+
+  useEffect(() => {
+    // Reset cached fallback staff when service or location changes
+    setFirstStaffId(undefined);
+  }, [serviceId, locationId]);
+
   useEffect(() => {
     // If "any employee" is selected, fetch first available staff
-    if (state.selectedStaff?.isAny && !firstStaffId && apiService) {
-      apiService.getStaff(state.selectedService?.service.id).then((response) => {
-        if (response.staff && response.staff.length > 0) {
-          setFirstStaffId(response.staff[0].id);
-        }
-      }).catch((error) => {
-        console.error("Failed to fetch staff for availability:", error);
-      });
+    if (
+      state.selectedStaff?.isAny &&
+      !firstStaffId &&
+      apiService &&
+      serviceId
+    ) {
+      apiService
+        .getStaff(serviceId, locationId)
+        .then((response) => {
+          if (response.staff && response.staff.length > 0) {
+            setFirstStaffId(response.staff[0].id);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch staff for availability:", error);
+        });
     }
-  }, [state.selectedStaff?.isAny, state.selectedService?.service.id, apiService, firstStaffId]);
+  }, [
+    state.selectedStaff?.isAny,
+    serviceId,
+    locationId,
+    apiService,
+    firstStaffId,
+  ]);
 
-  const staffId = state.selectedStaff?.staff?.id || 
-                  (state.selectedStaff?.isAny ? firstStaffId : undefined);
+  const staffId =
+    state.selectedStaff?.staff?.id ||
+    (state.selectedStaff?.isAny ? firstStaffId : undefined);
 
   console.log("DateTimeSelection - Debug:", {
     selectedDate,
@@ -55,11 +78,15 @@ export function DateTimeSelection() {
   });
 
   // Fetch availability for selected date
-  const { availability: availabilityData, isLoading, error } = useAvailability({
-    serviceId: state.selectedService?.service.id,
+  const {
+    availability: availabilityData,
+    isLoading,
+    error,
+  } = useAvailability({
+    serviceId,
     staffId: staffId,
     date: selectedDate ? formatDateISO(selectedDate) : undefined,
-    locationId: state.selectedLocation?.location?.id,
+    locationId,
     enabled: !!selectedDate && !!state.selectedService && !!staffId,
   });
 

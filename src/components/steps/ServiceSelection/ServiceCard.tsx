@@ -3,8 +3,6 @@
  * Displays a single service with details
  */
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPrice, formatDuration } from "@/utils";
