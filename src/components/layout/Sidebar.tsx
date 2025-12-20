@@ -14,9 +14,9 @@ const STEP_LABELS: Record<BookingStep, string> = {
   location: "Choose Location",
   service: "Choose Service",
   employee: "Select Staff",
+  extras: "Add Extras",
   dateTime: "Pick Date & Time",
   customerInfo: "Your Information",
-  extras: "Add Extras",
   payment: "Payment",
   confirmation: "Confirm Booking",
 };

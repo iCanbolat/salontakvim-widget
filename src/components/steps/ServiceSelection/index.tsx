@@ -71,7 +71,7 @@ export function ServiceSelection() {
 
   if (!hasLocationSelection) {
     return (
-      <div className="flex items-center justify-center min-h-[320px] text-sm text-muted-foreground">
+      <div className="flex items-center justify-center min-h-80 text-sm text-muted-foreground">
         Please select a location to see available services.
       </div>
     );

@@ -123,14 +123,14 @@ export function BookingWidget() {
     }
 
     switch (state.currentStep) {
+      case "location":
+        return <LocationSelection />;
+
       case "service":
         return <ServiceSelection />;
 
       case "employee":
         return <EmployeeSelection />;
-
-      case "location":
-        return <LocationSelection />;
 
       case "extras":
         return <ExtrasSelection />;

@@ -17,9 +17,9 @@ interface StepsLayoutProps {
 }
 
 const STEP_LABELS: Record<string, string> = {
+  location: "Select Location",
   service: "Select Service",
   employee: "Select Employee",
-  location: "Select Location",
   extras: "Add Extras",
   dateTime: "Choose Date & Time",
   customerInfo: "Your Information",
@@ -120,12 +120,12 @@ export function StepsLayout({
             {showProgressBar && config?.settings.showProgressBar && (
               <div className="space-y-1.5 mb-4">
                 <ProgressBar showPercentage={false} />
-                <h2 className="text-lg font-semibold">{currentStepLabel}</h2>
+                {/* <h2 className="text-lg font-semibold">{currentStepLabel}</h2> */}
               </div>
             )}
 
             {/* Step Content */}
-            <div className="bg-card rounded-lg border p-4">{children}</div>
+            <div className="  p-4 h-[500px] overflow-auto">{children}</div>
           </div>
 
           {/* Navigation Buttons - Fixed at bottom of viewport */}

@@ -135,12 +135,7 @@ export class ValidationService {
   /**
    * Validate location selection step
    */
-  validateLocationSelection(
-    hasLocation: boolean,
-    isRequired: boolean
-  ): StepValidation {
-    const required = true; // location must be chosen for workflow
-
+  validateLocationSelection(hasLocation: boolean): StepValidation {
     return {
       isValid: hasLocation,
       errors: hasLocation ? [] : ["Please select a location"],
@@ -204,10 +199,7 @@ export class ValidationService {
         );
 
       case "location":
-        return this.validateLocationSelection(
-          !!state.selectedLocation,
-          true // enforce location selection to proceed
-        );
+        return this.validateLocationSelection(!!state.selectedLocation);
 
       case "extras":
         // Extras are always optional

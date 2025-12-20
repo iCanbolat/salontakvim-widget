@@ -57,11 +57,6 @@ export function LocationSelection() {
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">
           Select Location
-          {!isRequired && (
-            <span className="ml-2 text-sm font-normal text-muted-foreground">
-              (Optional)
-            </span>
-          )}
         </h2>
         <p className="text-muted-foreground">
           Choose your preferred location or select "Any Location"

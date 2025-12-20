@@ -9,9 +9,9 @@ import type { BookingStep } from "@/types";
 
 // Define the order of steps (same as Sidebar)
 const STEP_ORDER: BookingStep[] = [
+  "location",
   "service",
   "employee",
-  "location",
   "extras",
   "dateTime",
   "customerInfo",

@@ -7,24 +7,8 @@ import type { CSSProperties } from "react";
 import { FormField } from "@/components/shared";
 import { Input } from "@/components/ui/input";
 import { useWidget } from "@/contexts";
+import { formatTurkishPhone, normalizeTurkishPhoneInput } from "@/utils";
 import type { CustomerInfo } from "@/types";
-
-/**
- * Format Turkish GSM phone number as (5XX) XXX XX XX
- * Input: digits only (e.g., "5055710095")
- * Output: formatted (e.g., "(505) 571 00 95")
- */
-function formatTurkishPhone(digits: string): string {
-  if (!digits) return "";
-  if (digits.length <= 3) return `(${digits}`;
-  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  if (digits.length <= 8)
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)} ${digits.slice(6)}`;
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)} ${digits.slice(
-    6,
-    8
-  )} ${digits.slice(8)}`;
-}
 
 interface PersonalInfoFormProps {
   values: Partial<CustomerInfo>;
@@ -118,12 +102,7 @@ export function PersonalInfoForm({
           placeholder="(5XX) XXX XX XX"
           value={formatTurkishPhone(values.phone || "")}
           onChange={(e) => {
-            const digitsOnly = e.target.value.replace(/\D+/g, "");
-            // Enforce Turkish GSM pattern: must start with 5, up to 10 digits total
-            const trimmed = digitsOnly.startsWith("5")
-              ? digitsOnly.slice(0, 10)
-              : digitsOnly.slice(0, 1);
-            onChange("phone", trimmed);
+            onChange("phone", normalizeTurkishPhoneInput(e.target.value));
           }}
           onBlur={() => onBlurField?.("phone")}
         />
