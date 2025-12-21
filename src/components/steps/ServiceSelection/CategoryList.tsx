@@ -5,24 +5,29 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ServiceCategory } from "@/types";
+import { useWidget } from "@/contexts";
+import type { ServiceCategory, Service } from "@/types";
 
 interface CategoryListProps {
   categories: ServiceCategory[];
+  services: Service[];
   selectedCategoryId: number | null;
   onSelectCategory: (categoryId: number | null) => void;
 }
 
 export function CategoryList({
   categories,
+  services,
   selectedCategoryId,
   onSelectCategory,
 }: CategoryListProps) {
+  const { config } = useWidget();
+
   // Add "All Services" option
   const allOption = {
     id: null,
     name: "All",
-    count: categories.reduce((sum, cat) => sum + (cat.serviceCount || 0), 0),
+    count: services.length,
   };
 
   const options = [
@@ -30,7 +35,7 @@ export function CategoryList({
     ...categories.map((cat) => ({
       id: cat.id,
       name: cat.name,
-      count: cat.serviceCount || 0,
+      count: services.filter((s) => s.categoryId === cat.id).length,
     })),
   ];
 
@@ -42,10 +47,9 @@ export function CategoryList({
           onClick={() => onSelectCategory(option.id)}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors border",
-            "hover:bg-muted/50",
             selectedCategoryId === option.id
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-background border-border"
+              ? "bg-primary text-primary-foreground border-primary hover:opacity-90"
+              : "bg-background border-border hover:bg-muted/50"
           )}
         >
           <span>{option.name}</span>
@@ -55,6 +59,11 @@ export function CategoryList({
               "h-5 min-w-5 px-1.5 text-xs",
               selectedCategoryId === option.id && "bg-primary-foreground/20"
             )}
+            style={
+              selectedCategoryId === option.id
+                ? { color: config?.styling.secondaryColor }
+                : undefined
+            }
           >
             {option.count}
           </Badge>

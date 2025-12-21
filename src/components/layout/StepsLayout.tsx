@@ -14,22 +14,17 @@ import { cn } from "@/lib/utils";
 interface StepsLayoutProps {
   children: ReactNode;
   showProgressBar?: boolean;
+  onConfirm?: () => void;
+  isConfirming?: boolean;
+  isConfirmSuccess?: boolean;
 }
-
-const STEP_LABELS: Record<string, string> = {
-  location: "Select Location",
-  service: "Select Service",
-  employee: "Select Employee",
-  extras: "Add Extras",
-  dateTime: "Choose Date & Time",
-  customerInfo: "Your Information",
-  payment: "Payment",
-  confirmation: "Confirmation",
-};
 
 export function StepsLayout({
   children,
   showProgressBar = true,
+  onConfirm,
+  isConfirming = false,
+  isConfirmSuccess = false,
 }: StepsLayoutProps) {
   const { config } = useWidget();
   const { state, canGoNext, canGoPrev, nextStep, prevStep } = useBooking();
@@ -38,14 +33,15 @@ export function StepsLayout({
     backgroundColor: config?.styling.sidebarBackgroundColor || undefined,
   };
 
-  const currentStepLabel = STEP_LABELS[state.currentStep] || "Unknown Step";
-  const showNavigation = state.currentStep !== "confirmation";
+  const isConfirmationStep = state.currentStep === "confirmation";
+  const primaryLabel = isConfirmationStep ? "Confirm Appointment" : "Next";
+  const showNavigation = !(isConfirmationStep && isConfirmSuccess);
 
   return (
     <div className="w-full">
       <div className="flex flex-col max-w-5xl mx-auto">
         {/* Desktop: Sidebar + Content in fixed height container */}
-        <div className="hidden lg:flex lg:h-[600px]">
+        <div className="hidden md:flex lg:h-[600px]">
           {/* Sidebar */}
           <aside
             className={cn(
@@ -91,7 +87,11 @@ export function StepsLayout({
                     variant="ghost"
                     size="sm"
                     onClick={prevStep}
-                    disabled={!canGoPrev()}
+                    disabled={
+                      isConfirmationStep
+                        ? isConfirming || !canGoPrev()
+                        : !canGoPrev()
+                    }
                     className={cn(!canGoPrev() && "invisible")}
                   >
                     <ChevronLeft className="h-4 w-4 mr-1" />
@@ -100,12 +100,21 @@ export function StepsLayout({
 
                   <Button
                     size="sm"
-                    onClick={nextStep}
-                    disabled={!canGoNext()}
-                    className="min-w-[100px]"
+                    onClick={isConfirmationStep ? onConfirm : nextStep}
+                    disabled={isConfirmationStep ? isConfirming : !canGoNext()}
+                    className="min-w-[140px]"
                   >
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-1" />
+                    {isConfirming ? (
+                      <span className="flex items-center gap-2">
+                        <ChevronRight className="h-4 w-4 animate-spin" />
+                        Confirming...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        {primaryLabel}
+                        <ChevronRight className="h-4 w-4" />
+                      </span>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -114,7 +123,7 @@ export function StepsLayout({
         </div>
 
         {/* Mobile: Stacked layout */}
-        <div className="flex flex-col lg:hidden">
+        <div className="flex flex-col md:hidden">
           {/* Progress Bar & Content */}
           <div className="p-4">
             {showProgressBar && config?.settings.showProgressBar && (
@@ -125,7 +134,7 @@ export function StepsLayout({
             )}
 
             {/* Step Content */}
-            <div className="  p-4 h-[500px] overflow-auto">{children}</div>
+            <div className="p-4 h-[500px] overflow-auto">{children}</div>
           </div>
 
           {/* Navigation Buttons - Fixed at bottom of viewport */}
@@ -139,7 +148,11 @@ export function StepsLayout({
                   variant="ghost"
                   size="sm"
                   onClick={prevStep}
-                  disabled={!canGoPrev()}
+                  disabled={
+                    isConfirmationStep
+                      ? isConfirming || !canGoPrev()
+                      : !canGoPrev()
+                  }
                   className={cn(!canGoPrev() && "invisible")}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
@@ -148,12 +161,21 @@ export function StepsLayout({
 
                 <Button
                   size="sm"
-                  onClick={nextStep}
-                  disabled={!canGoNext()}
-                  className="min-w-[100px]"
+                  onClick={isConfirmationStep ? onConfirm : nextStep}
+                  disabled={isConfirmationStep ? isConfirming : !canGoNext()}
+                  className="min-w-[140px]"
                 >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  {isConfirming ? (
+                    <span className="flex items-center gap-2">
+                      <ChevronRight className="h-4 w-4 animate-spin" />
+                      Confirming...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      {primaryLabel}
+                      <ChevronRight className="h-4 w-4" />
+                    </span>
+                  )}
                 </Button>
               </div>
             </div>

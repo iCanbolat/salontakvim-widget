@@ -205,6 +205,11 @@
     color: var(--heading, hsl(var(--foreground)));
   }
 
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
   /* Minimal scrollbar for horizontal scroll */
   .scrollbar-thin::-webkit-scrollbar {
     height: 4px;

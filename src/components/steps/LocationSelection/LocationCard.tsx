@@ -29,10 +29,16 @@ export function LocationCard({
 
   return (
     <button
+      type="button"
       className={cn(
-        "w-full text-left p-3 rounded-lg border transition-all hover:border-primary/50 hover:shadow-sm",
+        "w-full text-left p-3 rounded-lg border transition-all hover:border-primary/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         isSelected && "border-primary bg-primary/5"
       )}
+      role="radio"
+      aria-checked={isSelected}
+      aria-label={
+        fullAddress ? `${location.name}, ${fullAddress}` : location.name
+      }
       onClick={() => onSelect(location)}
     >
       <div className="space-y-2">

@@ -35,7 +35,7 @@ export function LocationList({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" role="radiogroup" aria-label="Select a location">
       {/* Any Location Option - First */}
       <AnyLocationOption isSelected={isAnySelected} onSelect={onSelectAny} />
 

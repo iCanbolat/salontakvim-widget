@@ -3,75 +3,28 @@
  * Final step to review and confirm appointment
  */
 
-import { useState } from "react";
 import { AppointmentDetails } from "./AppointmentDetails";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/shared";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { useBooking, useWidget } from "@/contexts";
-import type { CreateAppointmentRequest } from "@/types";
 
-export function ConfirmationStep() {
-  const { config, apiService } = useWidget();
-  const { state, resetBooking, prevStep } = useBooking();
+interface ConfirmationStepProps {
+  isSuccess: boolean;
+  appointmentId: number | null;
+  error: string | null;
+  onStartNew: () => void;
+}
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [appointmentId, setAppointmentId] = useState<number | null>(null);
+export function ConfirmationStep({
+  isSuccess,
+  appointmentId,
+  error,
+  onStartNew,
+}: ConfirmationStepProps) {
+  const { config } = useWidget();
+  const { state } = useBooking();
 
   const currency = config?.store.currency || "USD";
-
-  const handleConfirm = async () => {
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      // Prepare appointment data
-      const appointmentData: CreateAppointmentRequest = {
-        serviceId: state.selectedService?.service.id!,
-        staffId: state.selectedStaff?.staff?.id || undefined,
-        locationId: state.selectedLocation?.location?.id || undefined,
-        startDateTime: `${state.selectedDateTime?.date}T${state.selectedDateTime?.time}:00`,
-        numberOfPeople: state.numberOfPeople?.count || 1,
-        guestFirstName: state.customerInfo?.firstName!,
-        guestLastName: state.customerInfo?.lastName || "",
-        guestEmail: state.customerInfo?.email || "",
-        guestPhone: state.customerInfo?.phone || "",
-        customerNotes: state.customerInfo?.notes || "",
-        extrasData: state.selectedExtras.map((extra) => ({
-          extraId: extra.extra.id,
-          quantity: extra.quantity,
-        })),
-      };
-
-      // Call API
-      if (!apiService) {
-        throw new Error("API service not available");
-      }
-      const response = await apiService.createAppointment(appointmentData);
-
-      setAppointmentId(response.id);
-      setIsSuccess(true);
-
-      // Optional: Clear draft from localStorage
-      // StorageService.clearDraft(widgetKey);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create appointment"
-      );
-      console.error("Appointment creation failed:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleStartNew = () => {
-    resetBooking();
-    setIsSuccess(false);
-    setError(null);
-    setAppointmentId(null);
-  };
 
   // Success state
   if (isSuccess && appointmentId) {
@@ -100,7 +53,7 @@ export function ConfirmationStep() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-          <Button variant="outline" onClick={handleStartNew}>
+          <Button variant="outline" onClick={onStartNew}>
             Book Another Appointment
           </Button>
           {config?.settings.redirectUrlAfterBooking && (
@@ -152,27 +105,6 @@ export function ConfirmationStep() {
           <p className="text-sm font-medium">{error}</p>
         </div>
       )}
-
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-        <Button variant="outline" onClick={prevStep} disabled={isSubmitting}>
-          Go Back
-        </Button>
-        <Button
-          onClick={handleConfirm}
-          disabled={isSubmitting}
-          className="min-w-[200px]"
-        >
-          {isSubmitting ? (
-            <>
-              <LoadingSpinner size="sm" />
-              <span className="ml-2">Confirming...</span>
-            </>
-          ) : (
-            "Confirm Appointment"
-          )}
-        </Button>
-      </div>
 
       {/* Terms Note */}
       <div className="space-y-2 text-center max-w-md mx-auto">

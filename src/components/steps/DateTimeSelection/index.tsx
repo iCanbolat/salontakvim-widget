@@ -128,18 +128,23 @@ export function DateTimeSelection() {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
+      {/* Header */}
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Select Date</h2>
+        <p className="text-muted-foreground">
+          Choose your preferred Date and Time slot
+        </p>
+      </div>
+      <div className="space-y-6">
         {/* Calendar */}
-        <div>
-          <h3 className="text-sm font-medium mb-2">Pick a Date</h3>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={disabledDates}
-            className="rounded-md border mx-auto"
-          />
-        </div>
+
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={handleDateSelect}
+          disabled={disabledDates}
+          className="rounded-md border mx-auto"
+        />
 
         {/* Time Slots */}
         {selectedDate && (

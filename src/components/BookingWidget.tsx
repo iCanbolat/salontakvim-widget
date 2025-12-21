@@ -20,11 +20,15 @@ import type { BookingStep } from "@/types";
 import { cn } from "@/lib/utils";
 
 export function BookingWidget() {
-  const { config, isLoading, error } = useWidget();
-  const { state, nextStep, currentStepIndex } = useBooking();
+  const { config, isLoading, error, apiService } = useWidget();
+  const { state, nextStep, currentStepIndex, resetBooking } = useBooking();
   const [direction, setDirection] = useState<"forward" | "backward" | null>(
     null
   );
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [confirmSuccess, setConfirmSuccess] = useState(false);
+  const [appointmentId, setAppointmentId] = useState<number | null>(null);
   const prevStepIndexRef = useRef(currentStepIndex);
 
   // Track navigation direction for entrance animation (sync before paint to avoid flicker)
@@ -37,6 +41,22 @@ export function BookingWidget() {
     }
     prevStepIndexRef.current = currentStepIndex;
   }, [currentStepIndex]);
+
+  const isStepEnabled = (step: BookingStep) => {
+    const sidebarConfig = config?.sidebarMenuItems as
+      | Partial<Record<BookingStep, boolean>>
+      | undefined;
+
+    if (!sidebarConfig) {
+      return true;
+    }
+
+    if (step === "confirmation") {
+      return true;
+    }
+
+    return sidebarConfig[step] !== false;
+  };
 
   // Auto-skip disabled steps
   useEffect(() => {
@@ -93,20 +113,54 @@ export function BookingWidget() {
     );
   }
 
-  const isStepEnabled = (step: BookingStep) => {
-    const sidebarConfig = config?.sidebarMenuItems as
-      | Partial<Record<BookingStep, boolean>>
-      | undefined;
-
-    if (!sidebarConfig) {
-      return true;
+  const handleConfirm = async () => {
+    if (
+      !apiService ||
+      !state.selectedService ||
+      !state.selectedDateTime ||
+      !state.customerInfo
+    ) {
+      setConfirmError("Missing required booking information");
+      return;
     }
 
-    if (step === "confirmation") {
-      return true;
-    }
+    setIsConfirming(true);
+    setConfirmError(null);
 
-    return sidebarConfig[step] !== false;
+    try {
+      const appointmentData = {
+        serviceId: state.selectedService.service.id,
+        staffId: state.selectedStaff?.staff?.id || undefined,
+        locationId: state.selectedLocation?.location?.id || undefined,
+        startDateTime: `${state.selectedDateTime.date}T${state.selectedDateTime.time}:00`,
+        numberOfPeople: state.numberOfPeople?.count || 1,
+        guestFirstName: state.customerInfo.firstName,
+        guestLastName: state.customerInfo.lastName || "",
+        guestEmail: state.customerInfo.email || "",
+        guestPhone: state.customerInfo.phone || "",
+        customerNotes: state.customerInfo.notes || "",
+        extrasData: state.selectedExtras.map((extra) => ({
+          extraId: extra.extra.id,
+          quantity: extra.quantity,
+        })),
+      };
+
+      const response = await apiService.createAppointment(appointmentData);
+      setAppointmentId(response.id);
+      setConfirmSuccess(true);
+    } catch (err: any) {
+      setConfirmError(err?.message || "Failed to create appointment");
+      console.error("Appointment creation failed:", err);
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  const handleStartNew = () => {
+    setConfirmSuccess(false);
+    setConfirmError(null);
+    setAppointmentId(null);
+    resetBooking();
   };
 
   const renderStep = () => {
@@ -142,8 +196,6 @@ export function BookingWidget() {
         return <CustomerInfoStep />;
 
       case "payment":
-        // Payment step component would go here
-        // For now, show a placeholder or auto-skip via useEffect
         return (
           <div className="text-center py-12">
             <LoadingSpinner size="lg" text="Processing payment..." />
@@ -151,7 +203,14 @@ export function BookingWidget() {
         );
 
       case "confirmation":
-        return <ConfirmationStep />;
+        return (
+          <ConfirmationStep
+            isSuccess={confirmSuccess && !!appointmentId}
+            appointmentId={appointmentId}
+            error={confirmError}
+            onStartNew={handleStartNew}
+          />
+        );
 
       default:
         return (
@@ -173,7 +232,12 @@ export function BookingWidget() {
         borderRadius: `${containerRadius}px`,
       }}
     >
-      <StepsLayout showProgressBar={config.settings.showProgressBar}>
+      <StepsLayout
+        showProgressBar={config.settings.showProgressBar}
+        onConfirm={handleConfirm}
+        isConfirming={isConfirming}
+        isConfirmSuccess={confirmSuccess}
+      >
         <div
           key={state.currentStep}
           className={cn(

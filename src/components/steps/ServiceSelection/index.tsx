@@ -102,12 +102,21 @@ export function ServiceSelection() {
 
   return (
     <div className="space-y-4">
+      {/* Header */}
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Select Service</h2>
+        <p className="text-muted-foreground">
+          Choose your preferred service from the list below
+        </p>
+      </div>
+
       {/* Search */}
       <ServiceSearch value={searchQuery} onChange={setSearchQuery} />
 
       {/* Categories - Horizontal scroll on mobile */}
       <CategoryList
         categories={servicesData.categories || []}
+        services={servicesData.services || []}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={setSelectedCategoryId}
       />

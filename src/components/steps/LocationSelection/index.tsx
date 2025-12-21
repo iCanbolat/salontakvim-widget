@@ -6,15 +6,12 @@
 import { LocationList } from "./LocationList";
 import { LocationSkeleton } from "@/components/shared";
 import { useLocations } from "@/hooks";
-import { useBooking, useWidget } from "@/contexts";
+import { useBooking } from "@/contexts";
 import type { Location } from "@/types";
 
 export function LocationSelection() {
-  const { config } = useWidget();
   const { state, selectLocation } = useBooking();
   const { data: locationsData, isLoading, error } = useLocations();
-
-  const isRequired = config?.fieldRequirements.locationRequired || false;
 
   const handleSelectLocation = (location: Location) => {
     selectLocation({
@@ -55,9 +52,7 @@ export function LocationSelection() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold">
-          Select Location
-        </h2>
+        <h2 className="text-2xl font-bold">Select Location</h2>
         <p className="text-muted-foreground">
           Choose your preferred location or select "Any Location"
         </p>

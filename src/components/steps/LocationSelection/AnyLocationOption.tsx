@@ -17,10 +17,14 @@ export function AnyLocationOption({
 }: AnyLocationOptionProps) {
   return (
     <button
+      type="button"
       className={cn(
-        "w-full text-left p-3 rounded-lg border transition-all hover:border-primary/50 hover:shadow-sm",
+        "w-full text-left p-3 rounded-lg border transition-all hover:border-primary/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         isSelected && "border-primary bg-primary/5"
       )}
+      role="radio"
+      aria-checked={isSelected}
+      aria-label="Any location"
       onClick={onSelect}
     >
       <div className="flex items-center gap-3">
