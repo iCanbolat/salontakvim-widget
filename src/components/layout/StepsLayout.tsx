@@ -3,7 +3,7 @@
  * Responsive layout: sidebar on lg+, single column on mobile
  */
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "./ProgressBar";
 import { Sidebar } from "./Sidebar";
@@ -29,9 +29,19 @@ export function StepsLayout({
   const { config } = useWidget();
   const { state, canGoNext, canGoPrev, nextStep, prevStep } = useBooking();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const mobileScrollContainerRef = useRef<HTMLDivElement>(null);
+
   const navigationStyle = {
     backgroundColor: config?.styling.sidebarBackgroundColor || undefined,
   };
+
+  // Scroll to top when step changes or confirmation success occurs
+  useEffect(() => {
+    const scrollOptions: ScrollToOptions = { top: 0, behavior: "smooth" };
+    scrollContainerRef.current?.scrollTo(scrollOptions);
+    mobileScrollContainerRef.current?.scrollTo(scrollOptions);
+  }, [state.currentStep, isConfirmSuccess]);
 
   const isConfirmationStep = state.currentStep === "confirmation";
   const primaryLabel = isConfirmationStep ? "Confirm Appointment" : "Next";
@@ -69,6 +79,7 @@ export function StepsLayout({
           >
             {/* Scrollable Content */}
             <div
+              ref={scrollContainerRef}
               className={`flex-1 overflow-y-auto p-6 ${
                 state.currentStep === "confirmation" ? "" : "mb-24"
               }`}
@@ -134,7 +145,12 @@ export function StepsLayout({
             )}
 
             {/* Step Content */}
-            <div className="p-4 h-[500px] overflow-auto">{children}</div>
+            <div
+              ref={mobileScrollContainerRef}
+              className="p-4 h-[500px] overflow-auto"
+            >
+              {children}
+            </div>
           </div>
 
           {/* Navigation Buttons - Fixed at bottom of viewport */}
