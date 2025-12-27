@@ -112,6 +112,7 @@ export interface AvailabilityResponse {
   serviceId: number;
   staffId?: number;
   locationId?: number;
+  extrasDurationMinutes?: number;
 }
 
 // Appointment creation types

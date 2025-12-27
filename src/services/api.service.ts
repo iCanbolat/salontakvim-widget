@@ -203,7 +203,8 @@ export class ApiService {
     serviceId: number,
     staffId: number,
     date: string,
-    locationId?: number
+    locationId?: number,
+    extrasDurationMinutes?: number
   ): Promise<AvailabilityResponse> {
     const params = new URLSearchParams({
       serviceId: serviceId.toString(),
@@ -213,6 +214,10 @@ export class ApiService {
 
     if (locationId) {
       params.append("locationId", locationId.toString());
+    }
+
+    if (extrasDurationMinutes && extrasDurationMinutes > 0) {
+      params.append("extrasDurationMinutes", extrasDurationMinutes.toString());
     }
 
     const url = this.buildUrl(`/availability?${params.toString()}`);

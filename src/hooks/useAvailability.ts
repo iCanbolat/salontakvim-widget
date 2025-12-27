@@ -12,6 +12,7 @@ interface UseAvailabilityParams {
   staffId?: number;
   date?: string; // YYYY-MM-DD
   locationId?: number;
+  extrasDurationMinutes?: number;
   enabled?: boolean; // Auto-fetch control
 }
 
@@ -37,7 +38,14 @@ export function useAvailability(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { serviceId, staffId, date, locationId, enabled = true } = params;
+  const {
+    serviceId,
+    staffId,
+    date,
+    locationId,
+    extrasDurationMinutes,
+    enabled = true,
+  } = params;
 
   /**
    * Fetch availability from API
@@ -62,7 +70,8 @@ export function useAvailability(
         serviceId,
         staffId,
         date,
-        locationId
+        locationId,
+        extrasDurationMinutes
       );
 
       setAvailability(data);
@@ -76,7 +85,7 @@ export function useAvailability(
     } finally {
       setIsLoading(false);
     }
-  }, [apiService, serviceId, staffId, date, locationId]);
+  }, [apiService, serviceId, staffId, date, locationId, extrasDurationMinutes]);
 
   /**
    * Auto-fetch on params change (if enabled)
@@ -85,7 +94,15 @@ export function useAvailability(
     if (enabled && serviceId && staffId && date) {
       fetchAvailability();
     }
-  }, [enabled, serviceId, staffId, date, locationId, fetchAvailability]);
+  }, [
+    enabled,
+    serviceId,
+    staffId,
+    date,
+    locationId,
+    extrasDurationMinutes,
+    fetchAvailability,
+  ]);
 
   return {
     availability,

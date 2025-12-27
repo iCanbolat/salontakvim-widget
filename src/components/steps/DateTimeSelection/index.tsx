@@ -19,6 +19,10 @@ export function DateTimeSelection() {
 
   const serviceId = state.selectedService?.service.id;
   const locationId = state.selectedLocation?.location?.id;
+  const extrasDurationMinutes = state.selectedExtras.reduce(
+    (sum, extra) => sum + extra.extra.duration * extra.quantity,
+    0
+  );
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     state.selectedDateTime?.date
@@ -75,6 +79,7 @@ export function DateTimeSelection() {
     isAnyEmployee: state.selectedStaff?.isAny,
     firstStaffId,
     hasStaff: !!state.selectedStaff,
+    extrasDurationMinutes,
   });
 
   // Fetch availability for selected date
@@ -87,6 +92,7 @@ export function DateTimeSelection() {
     staffId: staffId,
     date: selectedDate ? formatDateISO(selectedDate) : undefined,
     locationId,
+    extrasDurationMinutes,
     enabled: !!selectedDate && !!state.selectedService && !!staffId,
   });
 
