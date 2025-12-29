@@ -11,7 +11,7 @@ import type { Location } from "@/types";
 
 interface LocationListProps {
   locations: Location[];
-  selectedLocationId: number | null;
+  selectedLocationId: string | null;
   isAnySelected: boolean;
   onSelectLocation: (location: Location) => void;
   onSelectAny: () => void;
