@@ -34,7 +34,7 @@ export function DateTimeSelection() {
   const showBringingAnyone = serviceCapacity > 1;
 
   // Get staffId - if "any employee" selected, fetch first available staff
-  const [firstStaffId, setFirstStaffId] = useState<number | undefined>();
+  const [firstStaffId, setFirstStaffId] = useState<string | undefined>();
 
   useEffect(() => {
     // Reset cached fallback staff when service or location changes

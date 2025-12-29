@@ -48,7 +48,7 @@ export interface WidgetSettings {
 
 // Store information
 export interface StoreInfo {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description?: string;

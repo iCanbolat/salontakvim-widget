@@ -151,7 +151,7 @@ export class ApiService {
   /**
    * Get available services
    */
-  async getServices(locationId?: number): Promise<ServiceResponse> {
+  async getServices(locationId?: string): Promise<ServiceResponse> {
     const params = locationId ? `?locationId=${locationId}` : "";
     const url = this.buildUrl(`/services${params}`);
     return fetchWithRetry<ServiceResponse>(url);
@@ -161,7 +161,7 @@ export class ApiService {
    * Get service extras
    * @param serviceId - Service ID to get extras for
    */
-  async getServiceExtras(serviceId: number): Promise<ServiceExtrasResponse> {
+  async getServiceExtras(serviceId: string): Promise<ServiceExtrasResponse> {
     const url = this.buildUrl(`/services/${serviceId}/extras`);
     return fetchWithRetry<ServiceExtrasResponse>(url);
   }
@@ -171,12 +171,12 @@ export class ApiService {
    * @param serviceId - Optional filter by service
    */
   async getStaff(
-    serviceId?: number,
-    locationId?: number
+    serviceId?: string,
+    locationId?: string
   ): Promise<StaffResponse> {
     const params = new URLSearchParams();
-    if (serviceId) params.append("serviceId", serviceId.toString());
-    if (locationId) params.append("locationId", locationId.toString());
+    if (serviceId) params.append("serviceId", serviceId);
+    if (locationId) params.append("locationId", locationId);
     const query = params.toString();
     const url = this.buildUrl(query ? `/staff?${query}` : "/staff");
     return fetchWithRetry<StaffResponse>(url);
@@ -186,7 +186,7 @@ export class ApiService {
    * Get locations
    * @param serviceId - Optional filter by service
    */
-  async getLocations(serviceId?: number): Promise<LocationResponse> {
+  async getLocations(serviceId?: string): Promise<LocationResponse> {
     const params = serviceId ? `?serviceId=${serviceId}` : "";
     const url = this.buildUrl(`/locations${params}`);
     return fetchWithRetry<LocationResponse>(url);
@@ -200,20 +200,20 @@ export class ApiService {
    * @param locationId - Optional location ID
    */
   async getAvailability(
-    serviceId: number,
-    staffId: number,
+    serviceId: string,
+    staffId: string,
     date: string,
-    locationId?: number,
+    locationId?: string,
     extrasDurationMinutes?: number
   ): Promise<AvailabilityResponse> {
     const params = new URLSearchParams({
-      serviceId: serviceId.toString(),
-      staffId: staffId.toString(),
+      serviceId,
+      staffId,
       date,
     });
 
     if (locationId) {
-      params.append("locationId", locationId.toString());
+      params.append("locationId", locationId);
     }
 
     if (extrasDurationMinutes && extrasDurationMinutes > 0) {

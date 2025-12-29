@@ -28,10 +28,9 @@ export function BookingWidget() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [confirmSuccess, setConfirmSuccess] = useState(false);
-  const [appointmentId, setAppointmentId] = useState<number | null>(null);
+  const [publicNumber, setPublicNumber] = useState<string | null>(null);
   const prevStepIndexRef = useRef(currentStepIndex);
 
-  // Track navigation direction for entrance animation (sync before paint to avoid flicker)
   useLayoutEffect(() => {
     const prevIndex = prevStepIndexRef.current;
     if (currentStepIndex > prevIndex) {
@@ -146,7 +145,7 @@ export function BookingWidget() {
       };
 
       const response = await apiService.createAppointment(appointmentData);
-      setAppointmentId(response.id);
+      setPublicNumber(response.publicNumber);
       setConfirmSuccess(true);
     } catch (err: any) {
       setConfirmError(err?.message || "Failed to create appointment");
@@ -159,7 +158,7 @@ export function BookingWidget() {
   const handleStartNew = () => {
     setConfirmSuccess(false);
     setConfirmError(null);
-    setAppointmentId(null);
+    setPublicNumber(null);
     resetBooking();
   };
 
@@ -205,8 +204,8 @@ export function BookingWidget() {
       case "confirmation":
         return (
           <ConfirmationStep
-            isSuccess={confirmSuccess && !!appointmentId}
-            appointmentId={appointmentId}
+            isSuccess={confirmSuccess && !!publicNumber}
+            publicNumber={publicNumber}
             error={confirmError}
             onStartNew={handleStartNew}
           />

@@ -71,7 +71,7 @@ export interface CustomerInfo {
   email: string;
   phone: string;
   notes?: string;
-  customFieldValues?: Record<number, string>; // fieldId -> value
+  customFieldValues?: Record<string, string>; // fieldId -> value
 }
 
 // Payment information
@@ -114,7 +114,7 @@ export interface AppointmentState {
 
 // Confirmed appointment details
 export interface ConfirmedAppointment {
-  id: number;
+  id: string;
   confirmationCode: string;
   service: {
     name: string;

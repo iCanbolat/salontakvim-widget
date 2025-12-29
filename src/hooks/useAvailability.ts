@@ -8,10 +8,10 @@ import { useWidget } from "@/contexts";
 import type { AvailabilityResponse, TimeSlot } from "@/types";
 
 interface UseAvailabilityParams {
-  serviceId?: number;
-  staffId?: number;
+  serviceId?: string;
+  staffId?: string;
   date?: string; // YYYY-MM-DD
-  locationId?: number;
+  locationId?: string;
   extrasDurationMinutes?: number;
   enabled?: boolean; // Auto-fetch control
 }

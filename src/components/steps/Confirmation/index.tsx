@@ -10,14 +10,14 @@ import { useBooking, useWidget } from "@/contexts";
 
 interface ConfirmationStepProps {
   isSuccess: boolean;
-  appointmentId: number | null;
+  publicNumber: string | null;
   error: string | null;
   onStartNew: () => void;
 }
 
 export function ConfirmationStep({
   isSuccess,
-  appointmentId,
+  publicNumber,
   error,
   onStartNew,
 }: ConfirmationStepProps) {
@@ -27,7 +27,7 @@ export function ConfirmationStep({
   const currency = config?.store.currency || "USD";
 
   // Success state
-  if (isSuccess && appointmentId) {
+  if (isSuccess && publicNumber) {
     return (
       <div className="space-y-6">
         <div className="text-center space-y-4 py-8">
@@ -43,7 +43,7 @@ export function ConfirmationStep({
             </p>
             <p className="text-sm text-muted-foreground">
               Appointment ID:{" "}
-              <span className="font-mono font-semibold">#{appointmentId}</span>
+              <span className="font-mono font-semibold">#{publicNumber}</span>
             </p>
           </div>
         </div>

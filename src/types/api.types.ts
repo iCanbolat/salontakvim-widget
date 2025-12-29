@@ -12,7 +12,7 @@ export interface ApiResponse<T> {
 
 // Service related types
 export interface ServiceCategory {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   color?: string;
@@ -21,7 +21,7 @@ export interface ServiceCategory {
 }
 
 export interface Service {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   duration: number; // minutes
@@ -31,7 +31,7 @@ export interface Service {
   bufferTimeAfter: number;
   color?: string;
   image?: string;
-  categoryId?: number;
+  categoryId?: string;
   categoryName?: string;
   showBringingAnyoneOption: boolean;
   allowRecurring: boolean;
@@ -39,8 +39,8 @@ export interface Service {
 }
 
 export interface ServiceExtra {
-  id: number;
-  serviceId: number;
+  id: string;
+  serviceId: string;
   name: string;
   description?: string;
   price: number;
@@ -61,8 +61,8 @@ export interface ServiceExtrasResponse {
 
 // Staff related types
 export interface Staff {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   name: string;
   firstName?: string;
   lastName?: string;
@@ -71,7 +71,7 @@ export interface Staff {
   bio?: string;
   avatar?: string;
   isVisible: boolean;
-  services?: number[]; // service IDs this staff can perform
+  services?: string[]; // service IDs this staff can perform
 }
 
 export interface StaffResponse {
@@ -80,7 +80,7 @@ export interface StaffResponse {
 
 // Location related types
 export interface Location {
-  id: number;
+  id: string;
   name: string;
   address?: string;
   city?: string;
@@ -109,17 +109,17 @@ export interface TimeSlot {
 export interface AvailabilityResponse {
   date: string; // YYYY-MM-DD
   slots: TimeSlot[];
-  serviceId: number;
-  staffId?: number;
-  locationId?: number;
+  serviceId: string;
+  staffId?: string;
+  locationId?: string;
   extrasDurationMinutes?: number;
 }
 
 // Appointment creation types
 export interface CreateAppointmentRequest {
-  serviceId: number;
-  staffId?: number;
-  locationId?: number;
+  serviceId: string;
+  staffId?: string;
+  locationId?: string;
   startDateTime: string; // ISO 8601 format
   numberOfPeople?: number;
   guestFirstName?: string;
@@ -132,17 +132,18 @@ export interface CreateAppointmentRequest {
 }
 
 export interface AppointmentExtraData {
-  extraId: number;
+  extraId: string;
   quantity: number;
 }
 
 export interface CustomFieldValue {
-  customFieldId: number;
+  customFieldId: string;
   value: string;
 }
 
 export interface AppointmentResponse {
-  id: number;
+  id: string;
+  publicNumber: string;
   confirmationCode: string;
   serviceName: string;
   staffName?: string;
