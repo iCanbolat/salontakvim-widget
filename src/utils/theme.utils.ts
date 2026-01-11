@@ -6,10 +6,27 @@
 import type { ThemeConfig } from "@/types";
 
 /**
- * Apply theme CSS variables to document root
+ * StyleTarget can be HTMLElement or ShadowRoot
  */
-export function applyTheme(theme: ThemeConfig): void {
-  const root = document.documentElement;
+type StyleTarget = HTMLElement | ShadowRoot;
+
+/**
+ * Get style root from target (handles both HTMLElement and ShadowRoot)
+ */
+function getStyleRoot(target: StyleTarget): HTMLElement {
+  if (target instanceof ShadowRoot) {
+    // For ShadowRoot, we need to find or create a style host element
+    const host = target.host as HTMLElement;
+    return host;
+  }
+  return target;
+}
+
+/**
+ * Apply theme CSS variables to target root
+ */
+export function applyTheme(theme: ThemeConfig, target?: StyleTarget): void {
+  const root = target ? getStyleRoot(target) : document.documentElement;
 
   // Apply colors
   if (theme.primaryColor) {
@@ -42,8 +59,12 @@ export function applyTheme(theme: ThemeConfig): void {
 /**
  * Apply typography styles
  */
-export function applyTypography(fontFamily?: string, fontSize?: number): void {
-  const root = document.documentElement;
+export function applyTypography(
+  fontFamily?: string,
+  fontSize?: number,
+  target?: StyleTarget
+): void {
+  const root = target ? getStyleRoot(target) : document.documentElement;
 
   if (fontFamily) {
     // Set both --font-family and --font-sans for consistency
@@ -51,6 +72,7 @@ export function applyTypography(fontFamily?: string, fontSize?: number): void {
     root.style.setProperty("--font-sans", fontFamily);
 
     // Load Google Font if needed (check if it's not a system font)
+    // Note: Google Fonts need to be loaded in main document to work in Shadow DOM too
     if (
       !fontFamily.includes("system") &&
       !fontFamily.includes("sans-serif") &&
@@ -89,9 +111,12 @@ export function loadGoogleFont(fontFamily: string): void {
 /**
  * Apply button styles
  */
-export function applyButtonStyles(borderRadius?: number): void {
+export function applyButtonStyles(
+  borderRadius?: number,
+  target?: StyleTarget
+): void {
   if (borderRadius !== undefined) {
-    const root = document.documentElement;
+    const root = target ? getStyleRoot(target) : document.documentElement;
     root.style.setProperty("--radius", `${borderRadius}px`);
   }
 }

@@ -11,8 +11,8 @@ import type { ServiceCategory, Service } from "@/types";
 interface CategoryListProps {
   categories: ServiceCategory[];
   services: Service[];
-  selectedCategoryId: number | null;
-  onSelectCategory: (categoryId: number | null) => void;
+  selectedCategoryId: string | null;
+  onSelectCategory: (categoryId: string | null) => void;
 }
 
 export function CategoryList({

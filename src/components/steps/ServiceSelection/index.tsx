@@ -27,7 +27,7 @@ export function ServiceSelection() {
     enabled: hasLocationSelection,
   });
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
   const [searchQuery, setSearchQuery] = useState("");

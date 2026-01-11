@@ -10,7 +10,7 @@ import type { Service } from "@/types";
 
 interface ServiceListProps {
   services: Service[];
-  selectedServiceId: number | null;
+  selectedServiceId: string | null;
   onSelectService: (service: Service) => void;
   currency: string;
 }

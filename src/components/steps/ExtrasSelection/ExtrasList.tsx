@@ -10,8 +10,8 @@ import type { ServiceExtra } from "@/types";
 
 interface ExtrasListProps {
   extras: ServiceExtra[];
-  quantities: Record<number, number>;
-  onQuantityChange: (extraId: number, quantity: number) => void;
+  quantities: Record<string, number>;
+  onQuantityChange: (extraId: string, quantity: number) => void;
   currency: string;
 }
 

@@ -12,7 +12,7 @@ import type { ServiceExtra } from "@/types";
 interface ExtraCardProps {
   extra: ServiceExtra;
   quantity: number;
-  onQuantityChange: (extraId: number, quantity: number) => void;
+  onQuantityChange: (extraId: string, quantity: number) => void;
   currency: string;
 }
 

@@ -7,6 +7,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -25,13 +26,17 @@ const WidgetContext = createContext<WidgetContextValue | undefined>(undefined);
 interface WidgetProviderProps {
   children: ReactNode;
   widgetKey: string;
+  slug?: string;
   apiBaseUrl?: string;
+  publicToken?: string;
 }
 
 export function WidgetProvider({
   children,
   widgetKey,
+  slug,
   apiBaseUrl,
+  publicToken,
 }: WidgetProviderProps) {
   const [state, setState] = useState<WidgetState>({
     config: null,
@@ -40,7 +45,16 @@ export function WidgetProvider({
     widgetKey,
   });
 
-  const [apiService] = useState(() => new ApiService(widgetKey, apiBaseUrl));
+  const apiService = useMemo(
+    () =>
+      new ApiService({
+        widgetKey,
+        slug,
+        baseUrl: apiBaseUrl,
+        token: publicToken,
+      }),
+    [apiBaseUrl, publicToken, slug, widgetKey]
+  );
 
   /**
    * Fetch widget configuration from API
@@ -97,7 +111,7 @@ export function WidgetProvider({
    */
   useEffect(() => {
     fetchConfig();
-  }, [widgetKey]); // Re-fetch if widget key changes
+  }, [widgetKey, slug, publicToken]); // Re-fetch if widget key/slug or token changes
 
   const value: WidgetContextValue = {
     ...state,

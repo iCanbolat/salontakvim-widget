@@ -16,7 +16,13 @@
   "use strict";
 
   // Configuration
-  const CDN_URL = "https://cdn.salontakvim.com";
+  const scriptUrl = document.currentScript?.src;
+  const scriptOrigin = scriptUrl
+    ? new URL(scriptUrl).origin
+    : "https://cdn.salontakvim.com";
+  const assetBase =
+    document.currentScript?.getAttribute("data-cdn") || scriptOrigin;
+  const CDN_URL = assetBase;
   const WIDGET_CSS = `${CDN_URL}/widget.css`;
   const WIDGET_JS = `${CDN_URL}/widget.js`;
   const DEFAULT_MODE = "inline";
@@ -33,11 +39,14 @@
   const mode = currentScript.getAttribute("data-mode") || DEFAULT_MODE;
   const containerSelector = currentScript.getAttribute("data-container");
   const configJson = currentScript.getAttribute("data-config");
+  const token = currentScript.getAttribute("data-token");
+  const apiBase = currentScript.getAttribute("data-api-base");
+  const slug = currentScript.getAttribute("data-slug");
 
   // Validate widget key
-  if (!widgetKey) {
+  if (!widgetKey && !slug) {
     console.error(
-      "[SalonTakvim Widget] Missing required attribute: data-widget-key"
+      "[SalonTakvim Widget] Missing required attribute: data-widget-key or data-slug"
     );
     return;
   }
@@ -53,10 +62,16 @@
   }
 
   /**
-   * Load CSS file
+   * Load CSS file - Skip for inline mode (CSS loaded into Shadow DOM)
    */
   function loadCSS() {
-    // Check if CSS already loaded
+    // For inline mode, CSS is loaded into Shadow DOM, not globally
+    // This prevents style bleeding to the host page
+    if (mode === "inline") {
+      return Promise.resolve();
+    }
+
+    // For iframe mode, load CSS globally
     if (document.querySelector(`link[href="${WIDGET_CSS}"]`)) {
       return Promise.resolve();
     }
@@ -83,10 +98,24 @@
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = WIDGET_JS;
+      script.type = "module"; // ES module
       script.async = true;
-      script.onload = resolve;
       script.onerror = reject;
       document.body.appendChild(script);
+
+      // Poll for SalonTakvimWidget to be defined (module execution may be async)
+      let attempts = 0;
+      const maxAttempts = 50; // 5 seconds max
+      const checkInterval = setInterval(() => {
+        attempts++;
+        if (window.SalonTakvimWidget) {
+          clearInterval(checkInterval);
+          resolve();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+          reject(new Error("Widget module did not initialize in time"));
+        }
+      }, 100);
     });
   }
 
@@ -97,6 +126,7 @@
     let container;
 
     if (containerSelector) {
+      // User specified a container selector
       container = document.querySelector(containerSelector);
       if (!container) {
         console.error(
@@ -105,40 +135,91 @@
         return null;
       }
     } else {
-      // Create new container after the script
-      container = document.createElement("div");
-      container.id = `salontakvim-widget-${widgetKey}`;
-      container.className = "salontakvim-widget-container";
-      currentScript.parentNode.insertBefore(
-        container,
-        currentScript.nextSibling
-      );
+      // Auto-detect: check if previous sibling is a div (user placed div before script)
+      const prevSibling = currentScript.previousElementSibling;
+      if (
+        prevSibling &&
+        prevSibling.tagName === "DIV" &&
+        (prevSibling.id?.includes("widget") ||
+          prevSibling.id?.includes("salon") ||
+          prevSibling.id?.includes("booking") ||
+          prevSibling.classList.contains("salontakvim-widget") ||
+          prevSibling.children.length === 0)
+      ) {
+        // Use the previous div as container
+        container = prevSibling;
+      } else {
+        // Create new container after the script
+        container = document.createElement("div");
+        container.id = `salontakvim-widget-${widgetKey || slug || "embed"}`;
+        container.className = "salontakvim-widget-container";
+        currentScript.parentNode.insertBefore(
+          container,
+          currentScript.nextSibling
+        );
+      }
     }
 
     return container;
   }
 
   /**
-   * Initialize inline widget
+   * Initialize inline widget with Shadow DOM isolation
    */
   function initInlineWidget(container) {
-    // Create root div for React
-    const root = document.createElement("div");
-    root.id = `salontakvim-widget-root-${widgetKey}`;
-    root.className = "salontakvim-widget-root";
-    container.appendChild(root);
+    // Create shadow DOM for style isolation
+    const shadowHost = document.createElement("div");
+    shadowHost.className = "salontakvim-shadow-host";
+    container.appendChild(shadowHost);
 
-    // Initialize widget
-    if (window.SalonTakvimWidget && window.SalonTakvimWidget.init) {
-      window.SalonTakvimWidget.init({
-        container: root,
-        widgetKey: widgetKey,
-        mode: "inline",
-        ...additionalConfig,
-      });
-    } else {
-      console.error("[SalonTakvim Widget] Widget not loaded properly");
-    }
+    const shadowRoot = shadowHost.attachShadow({ mode: "open" });
+
+    // Create style element with widget CSS
+    const styleLink = document.createElement("link");
+    styleLink.rel = "stylesheet";
+    styleLink.href = WIDGET_CSS;
+    shadowRoot.appendChild(styleLink);
+
+    // Create root div for React inside shadow DOM
+    const root = document.createElement("div");
+    root.id = `salontakvim-widget-root-${widgetKey || slug || "embed"}`;
+    root.className = "salontakvim-widget-root";
+    shadowRoot.appendChild(root);
+
+    // Wait for CSS to load before initializing widget
+    styleLink.onload = () => {
+      if (window.SalonTakvimWidget && window.SalonTakvimWidget.init) {
+        window.SalonTakvimWidget.init({
+          container: root,
+          shadowRoot: shadowRoot,
+          widgetKey: widgetKey,
+          slug: slug || undefined,
+          apiBaseUrl: apiBase || undefined,
+          mode: "inline",
+          ...additionalConfig,
+          token,
+        });
+      } else {
+        console.error("[SalonTakvim Widget] Widget not loaded properly");
+      }
+    };
+
+    styleLink.onerror = () => {
+      console.error("[SalonTakvim Widget] Failed to load widget CSS");
+      // Try to initialize anyway
+      if (window.SalonTakvimWidget && window.SalonTakvimWidget.init) {
+        window.SalonTakvimWidget.init({
+          container: root,
+          shadowRoot: shadowRoot,
+          widgetKey: widgetKey,
+          slug: slug || undefined,
+          apiBaseUrl: apiBase || undefined,
+          mode: "inline",
+          ...additionalConfig,
+          token,
+        });
+      }
+    };
   }
 
   /**
@@ -151,6 +232,16 @@
       mode: "iframe",
       ...additionalConfig,
     });
+
+    if (token) {
+      params.set("token", token);
+    }
+    if (apiBase) {
+      params.set("apiBase", apiBase);
+    }
+    if (slug) {
+      params.set("slug", slug);
+    }
     const iframeUrl = `${CDN_URL}/widget.html?${params.toString()}`;
 
     // Create iframe

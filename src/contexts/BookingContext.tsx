@@ -67,8 +67,8 @@ interface BookingContextValue {
 
   // Actions - Extras
   addExtra: (extra: SelectedExtra) => void;
-  removeExtra: (extraId: number) => void;
-  updateExtraQuantity: (extraId: number, quantity: number) => void;
+  removeExtra: (extraId: string) => void;
+  updateExtraQuantity: (extraId: string, quantity: number) => void;
   clearExtras: () => void;
 
   // Actions - DateTime
@@ -319,7 +319,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
   /**
    * Remove extra
    */
-  const removeExtra = useCallback((extraId: number) => {
+  const removeExtra = useCallback((extraId: string) => {
     setState((prev: AppointmentState) => ({
       ...prev,
       selectedExtras: prev.selectedExtras.filter((e) => e.extra.id !== extraId),
@@ -330,7 +330,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
    * Update extra quantity
    */
   const updateExtraQuantity = useCallback(
-    (extraId: number, quantity: number) => {
+    (extraId: string, quantity: number) => {
       setState((prev: AppointmentState) => ({
         ...prev,
         selectedExtras: prev.selectedExtras.map((e) =>

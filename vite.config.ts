@@ -38,16 +38,10 @@ export default defineConfig(({ mode }) => {
       // Rollup options
       rollupOptions: {
         output: {
-          // Manual chunks for better caching
-          manualChunks: {
-            "react-vendor": ["react", "react-dom"],
-            "ui-vendor": [
-              "@radix-ui/react-dialog",
-              "@radix-ui/react-dropdown-menu",
-              "@radix-ui/react-select",
-            ],
-            "date-vendor": ["date-fns", "react-day-picker"],
-          },
+          // Disable code splitting - bundle everything into single file for reliable embedding
+          // This ensures window.SalonTakvimWidget is available immediately when script loads
+          manualChunks: undefined,
+          inlineDynamicImports: true,
           // Asset file names
           assetFileNames: (assetInfo) => {
             const info = assetInfo.name?.split(".");
@@ -57,10 +51,14 @@ export default defineConfig(({ mode }) => {
             } else if (/woff|woff2|eot|ttf|otf/i.test(ext || "")) {
               return `assets/fonts/[name]-[hash][extname]`;
             }
+            // Output main CSS as widget.css for loader
+            if (ext === "css") {
+              return `widget.css`;
+            }
             return `assets/[name]-[hash][extname]`;
           },
-          chunkFileNames: "assets/js/[name]-[hash].js",
-          entryFileNames: "assets/js/[name]-[hash].js",
+          // Output main entry as widget.js for loader compatibility
+          entryFileNames: "widget.js",
         },
       },
       // Chunk size warnings

@@ -72,7 +72,7 @@ export function useApi<T extends ApiDataType>(
  * Hook to fetch services
  */
 export function useServices(
-  locationId?: number,
+  locationId?: string,
   options: UseApiOptions<ServiceResponse> = {}
 ) {
   const { apiService } = useWidget();
@@ -89,8 +89,8 @@ export function useServices(
  * Hook to fetch staff
  */
 export function useStaff(
-  serviceId?: number,
-  locationId?: number,
+  serviceId?: string,
+  locationId?: string,
   options: UseApiOptions<StaffResponse> = {}
 ) {
   const { apiService } = useWidget();
@@ -107,7 +107,7 @@ export function useStaff(
  * Hook to fetch locations
  */
 export function useLocations(
-  serviceId?: number,
+  serviceId?: string,
   options: UseApiOptions<LocationResponse> = {}
 ) {
   const { apiService } = useWidget();

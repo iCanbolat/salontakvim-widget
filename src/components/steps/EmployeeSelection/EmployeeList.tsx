@@ -11,7 +11,7 @@ import type { Staff } from "@/types";
 
 interface EmployeeListProps {
   staff: Staff[];
-  selectedStaffId: number | null;
+  selectedStaffId: string | null;
   isAnySelected: boolean;
   onSelectStaff: (staff: Staff) => void;
   onSelectAny: () => void;

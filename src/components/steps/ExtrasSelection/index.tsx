@@ -6,7 +6,6 @@
 import { useState, useEffect } from "react";
 import { ExtrasList } from "./ExtrasList";
 import { LoadingSpinner } from "@/components/shared";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useWidget, useBooking } from "@/contexts";
 import { formatPrice, calculateTotal } from "@/utils";
@@ -14,7 +13,7 @@ import type { ServiceExtra, SelectedExtra } from "@/types";
 
 export function ExtrasSelection() {
   const { config, apiService } = useWidget();
-  const { state, addExtra, clearExtras } = useBooking();
+  const { state, addExtra } = useBooking();
 
   const [extras, setExtras] = useState<ServiceExtra[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,15 +48,15 @@ export function ExtrasSelection() {
   }, [apiService, state.selectedService?.service.id]);
 
   // Initialize quantities from context
-  const [quantities, setQuantities] = useState<Record<number, number>>(() => {
-    const initial: Record<number, number> = {};
+  const [quantities, setQuantities] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {};
     state.selectedExtras.forEach((selectedExtra) => {
       initial[selectedExtra.extra.id] = selectedExtra.quantity;
     });
     return initial;
   });
 
-  const handleQuantityChange = (extraId: number, quantity: number) => {
+  const handleQuantityChange = (extraId: string, quantity: number) => {
     setQuantities((prev) => ({
       ...prev,
       [extraId]: quantity,

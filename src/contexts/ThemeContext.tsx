@@ -14,16 +14,17 @@ import {
 
 interface ThemeContextValue {
   theme: ThemeConfig | null;
-  applyTheme: (theme: ThemeConfig) => void;
+  applyTheme: (theme: ThemeConfig, root?: HTMLElement | ShadowRoot) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: ReactNode;
+  shadowRoot?: ShadowRoot;
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
+export function ThemeProvider({ children, shadowRoot }: ThemeProviderProps) {
   const { config } = useWidget();
 
   /**
@@ -31,22 +32,26 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
    */
   useEffect(() => {
     if (config?.styling) {
-      applyTheme(config.styling);
+      // Apply to shadow root if available, otherwise to document
+      const root = shadowRoot || document.documentElement;
+      applyTheme(config.styling, root);
     }
-  }, [config]);
+  }, [config, shadowRoot]);
 
   /**
    * Apply theme function
    */
-  const applyTheme = (theme: ThemeConfig) => {
+  const applyTheme = (theme: ThemeConfig, root?: HTMLElement | ShadowRoot) => {
+    const targetRoot = root || shadowRoot || document.documentElement;
+
     // Apply color theme
-    applyThemeUtils(theme);
+    applyThemeUtils(theme, targetRoot);
 
     // Apply typography
-    applyTypography(theme.fontFamily, theme.fontSize);
+    applyTypography(theme.fontFamily, theme.fontSize, targetRoot);
 
     // Apply button styles
-    applyButtonStyles(theme.buttonBorderRadius);
+    applyButtonStyles(theme.buttonBorderRadius, targetRoot);
   };
 
   const value: ThemeContextValue = {

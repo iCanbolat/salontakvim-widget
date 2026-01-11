@@ -124,20 +124,72 @@ async function fetchWithRetry<T>(
  * API Service Class
  */
 export class ApiService {
-  private widgetKey: string;
+  private widgetKey?: string;
+  private slug?: string;
   private baseUrl: string;
+  private publicToken?: string;
 
-  constructor(widgetKey: string, baseUrl?: string) {
-    this.widgetKey = widgetKey;
-    this.baseUrl = baseUrl || API_CONFIG.baseUrl;
+  constructor(
+    widgetKeyOrOptions:
+      | string
+      | { widgetKey?: string; slug?: string; baseUrl?: string; token?: string },
+    baseUrl?: string,
+    token?: string
+  ) {
+    if (typeof widgetKeyOrOptions === "string") {
+      this.widgetKey = widgetKeyOrOptions;
+      this.baseUrl = baseUrl || API_CONFIG.baseUrl;
+      this.publicToken = token;
+    } else {
+      const {
+        widgetKey,
+        slug,
+        baseUrl: customBaseUrl,
+        token: publicToken,
+      } = widgetKeyOrOptions;
+      this.widgetKey = widgetKey;
+      this.slug = slug;
+      this.baseUrl = customBaseUrl || API_CONFIG.baseUrl;
+      this.publicToken = publicToken;
+    }
   }
 
   /**
    * Build API URL with widget key
    */
   private buildUrl(endpoint: string): string {
-    const path = `/api/public/widget/${this.widgetKey}${endpoint}`;
-    return `${this.baseUrl}${path}`;
+    // Normalize baseUrl - remove trailing /api if present to avoid duplication
+    let normalizedBaseUrl = this.baseUrl;
+    if (normalizedBaseUrl.endsWith("/api")) {
+      normalizedBaseUrl = normalizedBaseUrl.slice(0, -4);
+    }
+    if (normalizedBaseUrl.endsWith("/")) {
+      normalizedBaseUrl = normalizedBaseUrl.slice(0, -1);
+    }
+
+    const prefix = this.slug
+      ? `/api/public/store/${this.slug}`
+      : this.widgetKey
+      ? `/api/public/widget/${this.widgetKey}`
+      : null;
+
+    if (!prefix) {
+      throw new Error("ApiService requires a widgetKey or slug");
+    }
+
+    // Handle endpoint mapping for store vs widget routes
+    // Store routes use different naming: /config -> /widget-config
+    let mappedEndpoint = endpoint;
+    if (this.slug && endpoint === "/config") {
+      mappedEndpoint = "/widget-config";
+    }
+
+    const url = new URL(`${normalizedBaseUrl}${prefix}${mappedEndpoint}`);
+    if (this.publicToken) {
+      url.searchParams.set("token", this.publicToken);
+    }
+
+    return url.toString();
   }
 
   /**
@@ -243,13 +295,27 @@ export class ApiService {
    */
   setWidgetKey(widgetKey: string): void {
     this.widgetKey = widgetKey;
+    this.slug = undefined;
   }
 
   /**
    * Get current widget key
    */
-  getWidgetKey(): string {
+  getWidgetKey(): string | undefined {
     return this.widgetKey;
+  }
+
+  setSlug(slug: string): void {
+    this.slug = slug;
+    this.widgetKey = undefined;
+  }
+
+  getSlug(): string | undefined {
+    return this.slug;
+  }
+
+  setPublicToken(token?: string): void {
+    this.publicToken = token;
   }
 }
 
@@ -257,10 +323,13 @@ export class ApiService {
  * Create API service instance
  */
 export function createApiService(
-  widgetKey: string,
-  baseUrl?: string
+  widgetKeyOrOptions:
+    | string
+    | { widgetKey?: string; slug?: string; baseUrl?: string; token?: string },
+  baseUrl?: string,
+  token?: string
 ): ApiService {
-  return new ApiService(widgetKey, baseUrl);
+  return new ApiService(widgetKeyOrOptions as any, baseUrl, token);
 }
 
 /**
@@ -269,10 +338,17 @@ export function createApiService(
 let apiServiceInstance: ApiService | null = null;
 
 export function initializeApiService(
-  widgetKey: string,
-  baseUrl?: string
+  widgetKeyOrOptions:
+    | string
+    | { widgetKey?: string; slug?: string; baseUrl?: string; token?: string },
+  baseUrl?: string,
+  token?: string
 ): ApiService {
-  apiServiceInstance = createApiService(widgetKey, baseUrl);
+  apiServiceInstance = createApiService(
+    widgetKeyOrOptions as any,
+    baseUrl,
+    token
+  );
   return apiServiceInstance;
 }
 

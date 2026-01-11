@@ -3,7 +3,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
+/* CSS Variables for both document root and Shadow DOM :host */
+:root,
+:host {
   --background: oklch(0.9911 0 0);
   --foreground: oklch(0.2046 0 0);
   --heading: oklch(0.2046 0 0);
@@ -192,6 +194,23 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-normal);
+  }
+
+  /* Shadow DOM host styles - mirrors body styles for embed isolation */
+  :host {
+    display: block;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-normal);
+  }
+
+  /* Widget root container styles */
+  .salontakvim-widget-root {
+    background: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     letter-spacing: var(--tracking-normal);
   }

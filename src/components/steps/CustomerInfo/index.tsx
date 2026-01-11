@@ -5,7 +5,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { PersonalInfoForm } from "./PersonalInfoForm";
-import { Button } from "@/components/ui/button";
 import { useBooking, useWidget } from "@/contexts";
 import { validationService } from "@/services";
 import type { CustomerInfo } from "@/types";
@@ -20,9 +19,6 @@ export function CustomerInfoStep() {
 
   const [errors, setErrors] = useState<
     Partial<Record<keyof CustomerInfo, string>>
-  >({});
-  const [touched, setTouched] = useState<
-    Partial<Record<keyof CustomerInfo, boolean>>
   >({});
 
   const fieldRequirements = config?.fieldRequirements || {
@@ -70,7 +66,6 @@ export function CustomerInfoStep() {
 
   const handleChange = (field: keyof CustomerInfo, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
-    setTouched((prev) => ({ ...prev, [field]: true }));
 
     if (errors[field]) {
       setErrors((prev) => {
@@ -92,13 +87,6 @@ export function CustomerInfoStep() {
       }
       return next;
     });
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
-  const validateForm = (): boolean => {
-    const validationErrors = computeErrors(values);
-    setErrors(validationErrors);
-    return Object.keys(validationErrors).length === 0;
   };
 
   // Save to context when form is currently valid
@@ -133,4 +121,3 @@ export function CustomerInfoStep() {
     </div>
   );
 }
-  
