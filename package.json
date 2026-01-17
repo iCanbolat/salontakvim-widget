@@ -10,6 +10,7 @@
     "build:dev": "tsc -b && vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
+    "serve": "pnpm dlx http-server ./dist -p 4173 --cors",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
