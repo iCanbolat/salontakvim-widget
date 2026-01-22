@@ -3,7 +3,7 @@
  * Date and time picker with availability
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { TimeSlots } from "./TimeSlots";
 import { BringingAnyoneOption } from "./BringingAnyoneOption";
@@ -21,13 +21,13 @@ export function DateTimeSelection() {
   const locationId = state.selectedLocation?.location?.id;
   const extrasDurationMinutes = state.selectedExtras.reduce(
     (sum, extra) => sum + extra.extra.duration * extra.quantity,
-    0
+    0,
   );
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     state.selectedDateTime?.date
       ? new Date(state.selectedDateTime.date)
-      : undefined
+      : undefined,
   );
 
   const serviceCapacity = state.selectedService?.service.capacity || 1;
@@ -95,6 +95,31 @@ export function DateTimeSelection() {
     extrasDurationMinutes,
     enabled: !!selectedDate && !!state.selectedService && !!staffId,
   });
+
+  // Disable time slots that are already in the past when the selected date is today
+  const filteredSlots = useMemo(() => {
+    if (!availabilityData?.slots) return [];
+
+    const isToday = selectedDate
+      ? selectedDate.toDateString() === new Date().toDateString()
+      : false;
+
+    if (!isToday) return availabilityData.slots;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    return availabilityData.slots.map((slot) => {
+      const [hour, minute] = slot.startTime.split(":").map(Number);
+      const slotMinutes = hour * 60 + minute;
+      const isPast = slotMinutes <= currentMinutes;
+
+      return {
+        ...slot,
+        available: slot.available && !isPast,
+      };
+    });
+  }, [availabilityData?.slots, selectedDate]);
 
   console.log("Availability result:", { availabilityData, isLoading, error });
 
@@ -174,7 +199,7 @@ export function DateTimeSelection() {
               </div>
             ) : availabilityData && availabilityData.slots.length > 0 ? (
               <TimeSlots
-                slots={availabilityData.slots}
+                slots={filteredSlots}
                 selectedTime={state.selectedDateTime?.time || null}
                 onSelectTime={handleTimeSelect}
               />

@@ -129,6 +129,7 @@ export interface CreateAppointmentRequest {
   customerNotes?: string;
   extrasData?: AppointmentExtraData[];
   customFieldValues?: CustomFieldValue[];
+  couponCode?: string;
 }
 
 export interface AppointmentExtraData {
@@ -156,6 +157,19 @@ export interface AppointmentResponse {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+}
+
+export interface CouponValidationResponse {
+  valid: boolean;
+  discountAmount: number;
+  finalAmount?: number;
+  coupon: {
+    code: string;
+    name: string;
+    type: string;
+    value: string;
+    validUntil: string;
+  };
 }
 
 // API Error types

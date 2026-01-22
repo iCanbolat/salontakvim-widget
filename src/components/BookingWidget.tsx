@@ -23,7 +23,7 @@ export function BookingWidget() {
   const { config, isLoading, error, apiService } = useWidget();
   const { state, nextStep, currentStepIndex, resetBooking } = useBooking();
   const [direction, setDirection] = useState<"forward" | "backward" | null>(
-    null
+    null,
   );
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
@@ -142,6 +142,7 @@ export function BookingWidget() {
           extraId: extra.extra.id,
           quantity: extra.quantity,
         })),
+        couponCode: state.paymentInfo?.couponCode || undefined,
       };
 
       const response = await apiService.createAppointment(appointmentData);
@@ -242,7 +243,7 @@ export function BookingWidget() {
           className={cn(
             "step-transition",
             direction === "forward" && "step-enter-from-right",
-            direction === "backward" && "step-enter-from-left"
+            direction === "backward" && "step-enter-from-left",
           )}
         >
           {renderStep()}

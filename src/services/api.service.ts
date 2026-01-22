@@ -12,6 +12,7 @@ import type {
   AvailabilityResponse,
   CreateAppointmentRequest,
   AppointmentResponse,
+  CouponValidationResponse,
   ApiError,
 } from "@/types";
 
@@ -33,7 +34,7 @@ export class ApiRequestError extends Error {
   constructor(
     message: string,
     statusCode: number,
-    details?: Record<string, any>
+    details?: Record<string, any>,
   ) {
     super(message);
     this.name = "ApiRequestError";
@@ -53,7 +54,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function fetchWithRetry<T>(
   url: string,
   options: RequestInit = {},
-  retries = API_CONFIG.retryAttempts
+  retries = API_CONFIG.retryAttempts,
 ): Promise<T> {
   try {
     const controller = new AbortController();
@@ -80,7 +81,7 @@ async function fetchWithRetry<T>(
       throw new ApiRequestError(
         errorData.message || "Request failed",
         errorData.statusCode || response.status,
-        errorData.details
+        errorData.details,
       );
     }
 
@@ -115,7 +116,7 @@ async function fetchWithRetry<T>(
 
     throw new ApiRequestError(
       error instanceof Error ? error.message : "Network error",
-      0
+      0,
     );
   }
 }
@@ -134,7 +135,7 @@ export class ApiService {
       | string
       | { widgetKey?: string; slug?: string; baseUrl?: string; token?: string },
     baseUrl?: string,
-    token?: string
+    token?: string,
   ) {
     if (typeof widgetKeyOrOptions === "string") {
       this.widgetKey = widgetKeyOrOptions;
@@ -170,8 +171,8 @@ export class ApiService {
     const prefix = this.slug
       ? `/api/public/store/${this.slug}`
       : this.widgetKey
-      ? `/api/public/widget/${this.widgetKey}`
-      : null;
+        ? `/api/public/widget/${this.widgetKey}`
+        : null;
 
     if (!prefix) {
       throw new Error("ApiService requires a widgetKey or slug");
@@ -224,7 +225,7 @@ export class ApiService {
    */
   async getStaff(
     serviceId?: string,
-    locationId?: string
+    locationId?: string,
   ): Promise<StaffResponse> {
     const params = new URLSearchParams();
     if (serviceId) params.append("serviceId", serviceId);
@@ -256,7 +257,7 @@ export class ApiService {
     staffId: string,
     date: string,
     locationId?: string,
-    extrasDurationMinutes?: number
+    extrasDurationMinutes?: number,
   ): Promise<AvailabilityResponse> {
     const params = new URLSearchParams({
       serviceId,
@@ -281,12 +282,28 @@ export class ApiService {
    * @param appointmentData - Appointment details
    */
   async createAppointment(
-    appointmentData: CreateAppointmentRequest
+    appointmentData: CreateAppointmentRequest,
   ): Promise<AppointmentResponse> {
     const url = this.buildUrl("/appointments");
     return fetchWithRetry<AppointmentResponse>(url, {
       method: "POST",
       body: JSON.stringify(appointmentData),
+    });
+  }
+
+  /**
+   * Validate coupon code
+   */
+  async validateCoupon(data: {
+    code: string;
+    serviceId?: string;
+    amount?: number;
+    guestEmail?: string;
+  }): Promise<CouponValidationResponse> {
+    const url = this.buildUrl("/coupons/validate");
+    return fetchWithRetry<CouponValidationResponse>(url, {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 
@@ -327,7 +344,7 @@ export function createApiService(
     | string
     | { widgetKey?: string; slug?: string; baseUrl?: string; token?: string },
   baseUrl?: string,
-  token?: string
+  token?: string,
 ): ApiService {
   return new ApiService(widgetKeyOrOptions as any, baseUrl, token);
 }
@@ -342,12 +359,12 @@ export function initializeApiService(
     | string
     | { widgetKey?: string; slug?: string; baseUrl?: string; token?: string },
   baseUrl?: string,
-  token?: string
+  token?: string,
 ): ApiService {
   apiServiceInstance = createApiService(
     widgetKeyOrOptions as any,
     baseUrl,
-    token
+    token,
   );
   return apiServiceInstance;
 }
@@ -355,7 +372,7 @@ export function initializeApiService(
 export function getApiService(): ApiService {
   if (!apiServiceInstance) {
     throw new Error(
-      "API Service not initialized. Call initializeApiService first."
+      "API Service not initialized. Call initializeApiService first.",
     );
   }
   return apiServiceInstance;

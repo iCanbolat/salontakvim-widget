@@ -3,10 +3,13 @@
  * Final step to review and confirm appointment
  */
 
+import { useEffect, useMemo, useState } from "react";
 import { AppointmentDetails } from "./AppointmentDetails";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { CheckCircle, AlertCircle, Tag } from "lucide-react";
 import { useBooking, useWidget } from "@/contexts";
+import { validationService } from "@/services/validation.service";
 
 interface ConfirmationStepProps {
   isSuccess: boolean;
@@ -21,16 +24,89 @@ export function ConfirmationStep({
   error,
   onStartNew,
 }: ConfirmationStepProps) {
-  const { config } = useWidget();
-  const { state } = useBooking();
+  const { config, apiService } = useWidget();
+  const { state, setPaymentInfo, getPriceBreakdown } = useBooking();
 
   const currency = config?.store.currency || "USD";
+  const priceBreakdown = useMemo(
+    () => getPriceBreakdown(),
+    [getPriceBreakdown],
+  );
+  const [couponCode, setCouponCode] = useState(
+    state.paymentInfo?.couponCode || "",
+  );
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [couponApplied, setCouponApplied] = useState(false);
+
+  useEffect(() => {
+    setCouponCode(state.paymentInfo?.couponCode || "");
+    setCouponApplied(!!state.paymentInfo?.couponCode);
+  }, [state.paymentInfo?.couponCode]);
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    if (!validationService.isValidCouponCode(code)) {
+      setCouponError("Invalid coupon format");
+      return;
+    }
+
+    setCouponError(null);
+    setCouponApplying(true);
+
+    try {
+      if (!apiService) {
+        throw new Error("Widget is not ready. Please try again.");
+      }
+
+      const response = await apiService.validateCoupon({
+        code,
+        serviceId: state.selectedService?.service.id,
+        amount: priceBreakdown.subtotal,
+        guestEmail: state.customerInfo?.email || undefined,
+      });
+
+      const discount = Number(response.discountAmount || 0);
+      const total = Math.max(0, priceBreakdown.subtotal - discount);
+      setPaymentInfo({
+        method: state.paymentInfo?.method || "cash",
+        couponCode: code,
+        discount,
+        subtotal: priceBreakdown.subtotal,
+        total,
+      });
+      setCouponApplied(true);
+    } catch (err: any) {
+      setCouponError(err?.message || "Coupon could not be applied");
+      setCouponApplied(false);
+    } finally {
+      setCouponApplying(false);
+    }
+  };
+
+  const handleClearCoupon = () => {
+    setCouponCode("");
+    setCouponApplied(false);
+    setCouponError(null);
+    setPaymentInfo({
+      method: state.paymentInfo?.method || "cash",
+      couponCode: undefined,
+      discount: 0,
+      subtotal: priceBreakdown.subtotal,
+      total: priceBreakdown.subtotal,
+    });
+  };
 
   // Success state
   if (isSuccess && publicNumber) {
     return (
-      <div className="space-y-6">
-        <div className="text-center space-y-4 py-8">
+      <div className="space-y-4">
+        <div className="text-center space-y-3 py-5">
           <div className="flex justify-center">
             <div className="rounded-full bg-green-100 p-3">
               <CheckCircle className="h-16 w-16 text-green-600" />
@@ -49,10 +125,14 @@ export function ConfirmationStep({
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <AppointmentDetails appointment={state} currency={currency} />
+          <AppointmentDetails
+            appointment={state}
+            currency={currency}
+            priceBreakdown={priceBreakdown}
+          />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <Button variant="outline" onClick={onStartNew}>
             Book Another Appointment
           </Button>
@@ -84,7 +164,7 @@ export function ConfirmationStep({
 
   // Review & Confirm state
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Review & Confirm</h2>
@@ -94,8 +174,57 @@ export function ConfirmationStep({
       </div>
 
       {/* Appointment Details */}
-      <div className="max-w-2xl mx-auto">
-        <AppointmentDetails appointment={state} currency={currency} />
+      <div className="max-w-2xl mx-auto space-y-3">
+        <AppointmentDetails
+          appointment={state}
+          currency={currency}
+          priceBreakdown={priceBreakdown}
+        />
+
+        {/* Coupon */}
+        <div className="rounded-lg border p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-muted-foreground" />
+              <p className="font-medium">Have a coupon?</p>
+            </div>
+            {couponApplied && (
+              <span className="text-xs text-emerald-600 font-medium">
+                Applied
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder="Enter code"
+              className="uppercase"
+              disabled={couponApplying}
+            />
+            {couponApplied ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClearCoupon}
+                disabled={couponApplying}
+              >
+                Remove
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={couponApplying}
+              >
+                Apply
+              </Button>
+            )}
+          </div>
+          {couponError && (
+            <p className="text-xs text-destructive">{couponError}</p>
+          )}
+        </div>
       </div>
 
       {/* Error Message */}

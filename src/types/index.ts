@@ -34,6 +34,7 @@ export type {
   AppointmentExtraData,
   CustomFieldValue,
   AppointmentResponse,
+  CouponValidationResponse,
 } from "./api.types";
 
 // Appointment types
