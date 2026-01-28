@@ -128,7 +128,7 @@ export class ApiService {
   private widgetKey?: string;
   private slug?: string;
   private baseUrl: string;
-  private publicToken?: string;
+  private token?: string;
 
   constructor(
     widgetKeyOrOptions:
@@ -140,18 +140,18 @@ export class ApiService {
     if (typeof widgetKeyOrOptions === "string") {
       this.widgetKey = widgetKeyOrOptions;
       this.baseUrl = baseUrl || API_CONFIG.baseUrl;
-      this.publicToken = token;
+      this.token = token;
     } else {
       const {
         widgetKey,
         slug,
         baseUrl: customBaseUrl,
-        token: publicToken,
+        token: tokenValue,
       } = widgetKeyOrOptions;
       this.widgetKey = widgetKey;
       this.slug = slug;
       this.baseUrl = customBaseUrl || API_CONFIG.baseUrl;
-      this.publicToken = publicToken;
+      this.token = tokenValue;
     }
   }
 
@@ -186,8 +186,8 @@ export class ApiService {
     }
 
     const url = new URL(`${normalizedBaseUrl}${prefix}${mappedEndpoint}`);
-    if (this.publicToken) {
-      url.searchParams.set("token", this.publicToken);
+    if (this.token) {
+      url.searchParams.set("token", this.token);
     }
 
     return url.toString();
@@ -331,8 +331,8 @@ export class ApiService {
     return this.slug;
   }
 
-  setPublicToken(token?: string): void {
-    this.publicToken = token;
+  setToken(token?: string): void {
+    this.token = token;
   }
 }
 

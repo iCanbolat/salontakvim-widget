@@ -5,64 +5,46 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { PersonalInfoForm } from "./PersonalInfoForm";
-import { useBooking, useWidget } from "@/contexts";
+import { useBooking } from "@/contexts";
 import { validationService } from "@/services";
 import type { CustomerInfo } from "@/types";
 
 export function CustomerInfoStep() {
-  const { config } = useWidget();
   const { state, setCustomerInfo } = useBooking();
 
   const [values, setValues] = useState<Partial<CustomerInfo>>(
-    state.customerInfo || {}
+    state.customerInfo || {},
   );
 
   const [errors, setErrors] = useState<
     Partial<Record<keyof CustomerInfo, string>>
   >({});
 
-  const fieldRequirements = config?.fieldRequirements || {
-    lastNameRequired: true,
-    emailRequired: true,
-    phoneRequired: true,
-  };
+  const computeErrors = useCallback((vals: Partial<CustomerInfo>) => {
+    const validationErrors: Partial<Record<keyof CustomerInfo, string>> = {};
 
-  const computeErrors = useCallback(
-    (vals: Partial<CustomerInfo>) => {
-      const validationErrors: Partial<Record<keyof CustomerInfo, string>> = {};
+    if (!vals.firstName?.trim()) {
+      validationErrors.firstName = "First name is required";
+    }
 
-      if (!vals.firstName?.trim()) {
-        validationErrors.firstName = "First name is required";
-      }
+    if (!vals.lastName?.trim()) {
+      validationErrors.lastName = "Last name is required";
+    }
 
-      if (fieldRequirements.lastNameRequired && !vals.lastName?.trim()) {
-        validationErrors.lastName = "Last name is required";
-      }
+    if (!vals.email?.trim()) {
+      validationErrors.email = "Email is required";
+    } else if (!validationService.isValidEmail(vals.email)) {
+      validationErrors.email = "Please enter a valid email address";
+    }
 
-      if (fieldRequirements.emailRequired) {
-        if (!vals.email?.trim()) {
-          validationErrors.email = "Email is required";
-        } else if (!validationService.isValidEmail(vals.email)) {
-          validationErrors.email = "Please enter a valid email address";
-        }
-      } else if (vals.email && !validationService.isValidEmail(vals.email)) {
-        validationErrors.email = "Please enter a valid email address";
-      }
+    if (!vals.phone?.trim()) {
+      validationErrors.phone = "Phone number is required";
+    } else if (!validationService.isValidPhone(vals.phone)) {
+      validationErrors.phone = "Please enter a valid phone number";
+    }
 
-      if (fieldRequirements.phoneRequired) {
-        if (!vals.phone?.trim()) {
-          validationErrors.phone = "Phone number is required";
-        } else if (!validationService.isValidPhone(vals.phone)) {
-          validationErrors.phone = "Please enter a valid phone number";
-        }
-      } else if (vals.phone && !validationService.isValidPhone(vals.phone)) {
-        validationErrors.phone = "Please enter a valid phone number";
-      }
-
-      return validationErrors;
-    },
-    [fieldRequirements]
-  );
+    return validationErrors;
+  }, []);
 
   const handleChange = (field: keyof CustomerInfo, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -115,7 +97,6 @@ export function CustomerInfoStep() {
           errors={errors}
           onChange={handleChange}
           onBlurField={validateField}
-          fieldRequirements={fieldRequirements}
         />
       </div>
     </div>

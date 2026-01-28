@@ -17,15 +17,6 @@ export interface SidebarMenuItems {
   payment: boolean;
 }
 
-// Field requirement configuration
-export interface FieldRequirements {
-  employeeRequired: boolean;
-  locationRequired: boolean;
-  lastNameRequired: boolean;
-  emailRequired: boolean;
-  phoneRequired: boolean;
-}
-
 // Styling configuration
 export interface ThemeConfig {
   primaryColor: string;
@@ -65,7 +56,6 @@ export interface WidgetConfig {
   showCompanyEmail: boolean;
   companyEmail?: string;
   sidebarMenuItems: SidebarMenuItems;
-  fieldRequirements: FieldRequirements;
   styling: ThemeConfig;
   settings: WidgetSettings;
 }

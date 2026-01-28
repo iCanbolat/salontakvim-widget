@@ -3,12 +3,7 @@
  * Handles form validation and business rules
  */
 
-import type {
-  CustomerInfo,
-  FieldRequirements,
-  BookingStep,
-  StepValidation,
-} from "@/types";
+import type { CustomerInfo, BookingStep, StepValidation } from "@/types";
 
 /**
  * Email validation regex (RFC 5322 simplified)
@@ -58,10 +53,7 @@ export class ValidationService {
   /**
    * Validate customer information
    */
-  validateCustomerInfo(
-    customerInfo: Partial<CustomerInfo>,
-    requirements: FieldRequirements
-  ): StepValidation {
+  validateCustomerInfo(customerInfo: Partial<CustomerInfo>): StepValidation {
     const errors: string[] = [];
 
     // First name is always required
@@ -69,33 +61,22 @@ export class ValidationService {
       errors.push("First name is required");
     }
 
-    // Last name validation based on requirements
-    if (
-      requirements.lastNameRequired &&
-      !this.isRequired(customerInfo.lastName)
-    ) {
+    // Last name is always required
+    if (!this.isRequired(customerInfo.lastName)) {
       errors.push("Last name is required");
     }
 
     // Email validation
-    if (requirements.emailRequired) {
-      if (!this.isRequired(customerInfo.email)) {
-        errors.push("Email is required");
-      } else if (!this.isValidEmail(customerInfo.email!)) {
-        errors.push("Invalid email format");
-      }
-    } else if (customerInfo.email && !this.isValidEmail(customerInfo.email)) {
+    if (!this.isRequired(customerInfo.email)) {
+      errors.push("Email is required");
+    } else if (!this.isValidEmail(customerInfo.email!)) {
       errors.push("Invalid email format");
     }
 
     // Phone validation
-    if (requirements.phoneRequired) {
-      if (!this.isRequired(customerInfo.phone)) {
-        errors.push("Phone number is required");
-      } else if (!this.isValidPhone(customerInfo.phone!)) {
-        errors.push("Invalid phone number format");
-      }
-    } else if (customerInfo.phone && !this.isValidPhone(customerInfo.phone)) {
+    if (!this.isRequired(customerInfo.phone)) {
+      errors.push("Phone number is required");
+    } else if (!this.isValidPhone(customerInfo.phone!)) {
       errors.push("Invalid phone number format");
     }
 
@@ -118,14 +99,7 @@ export class ValidationService {
   /**
    * Validate employee selection step
    */
-  validateEmployeeSelection(
-    hasEmployee: boolean,
-    isRequired: boolean
-  ): StepValidation {
-    if (!isRequired) {
-      return { isValid: true, errors: [] };
-    }
-
+  validateEmployeeSelection(hasEmployee: boolean): StepValidation {
     return {
       isValid: hasEmployee,
       errors: hasEmployee ? [] : ["Please select an employee"],
@@ -147,7 +121,7 @@ export class ValidationService {
    */
   validateDateTimeSelection(
     hasDate: boolean,
-    hasTime: boolean
+    hasTime: boolean,
   ): StepValidation {
     const errors: string[] = [];
 
@@ -183,20 +157,13 @@ export class ValidationService {
   /**
    * Validate entire booking step
    */
-  validateStep(
-    step: BookingStep,
-    state: any,
-    requirements: FieldRequirements
-  ): StepValidation {
+  validateStep(step: BookingStep, state: any): StepValidation {
     switch (step) {
       case "service":
         return this.validateServiceSelection(!!state.selectedService);
 
       case "employee":
-        return this.validateEmployeeSelection(
-          !!state.selectedStaff,
-          requirements.employeeRequired
-        );
+        return this.validateEmployeeSelection(!!state.selectedStaff);
 
       case "location":
         return this.validateLocationSelection(!!state.selectedLocation);
@@ -208,19 +175,16 @@ export class ValidationService {
       case "dateTime":
         return this.validateDateTimeSelection(
           !!state.selectedDateTime?.date,
-          !!state.selectedDateTime?.time
+          !!state.selectedDateTime?.time,
         );
 
       case "customerInfo":
-        return this.validateCustomerInfo(
-          state.customerInfo || {},
-          requirements
-        );
+        return this.validateCustomerInfo(state.customerInfo || {});
 
       case "payment":
         return this.validatePayment(
           !!state.paymentInfo?.method,
-          state.paymentInfo?.total === 0
+          state.paymentInfo?.total === 0,
         );
 
       case "confirmation":

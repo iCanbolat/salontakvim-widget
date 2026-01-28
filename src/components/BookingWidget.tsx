@@ -42,17 +42,23 @@ export function BookingWidget() {
   }, [currentStepIndex]);
 
   const isStepEnabled = (step: BookingStep) => {
-    const sidebarConfig = config?.sidebarMenuItems as
-      | Partial<Record<BookingStep, boolean>>
-      | undefined;
-
-    if (!sidebarConfig) {
+    if (!config?.sidebarMenuItems) {
       return true;
     }
 
     if (step === "confirmation") {
       return true;
     }
+
+    const sidebarConfig: Partial<Record<BookingStep, boolean>> = {
+      service: true,
+      employee: true,
+      location: true,
+      dateTime: true,
+      customerInfo: true,
+      extras: config.sidebarMenuItems.extras !== false,
+      payment: config.sidebarMenuItems.payment !== false,
+    };
 
     return sidebarConfig[step] !== false;
   };

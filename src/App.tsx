@@ -19,7 +19,7 @@ const API_BASE_URL =
   params.get("apiBase") ||
   import.meta.env.VITE_API_BASE_URL ||
   "http://localhost:3000";
-const TOKEN = params.get("token") || import.meta.env.VITE_WIDGET_PUBLIC_TOKEN;
+const TOKEN = params.get("token") || "";
 
 function App() {
   return (
@@ -28,7 +28,7 @@ function App() {
         widgetKey={WIDGET_KEY}
         slug={WIDGET_SLUG}
         apiBaseUrl={API_BASE_URL}
-        publicToken={TOKEN}
+        token={TOKEN}
       >
         <ThemeProvider>
           <BookingProvider>

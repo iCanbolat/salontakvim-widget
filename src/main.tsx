@@ -18,7 +18,7 @@ if (rootEl && isIframeMode) {
   createRoot(rootEl).render(
     <>
       <App />
-    </>
+    </>,
   );
 }
 
@@ -52,7 +52,7 @@ function initWidget(options: WidgetInitOptions) {
         widgetKey={widgetKey}
         slug={slug}
         apiBaseUrl={apiBaseUrl}
-        publicToken={token}
+        token={token}
       >
         <ThemeProvider shadowRoot={shadowRoot}>
           <BookingProvider>
@@ -62,7 +62,7 @@ function initWidget(options: WidgetInitOptions) {
           </BookingProvider>
         </ThemeProvider>
       </WidgetProvider>
-    </ErrorBoundary>
+    </ErrorBoundary>,
   );
 
   return {

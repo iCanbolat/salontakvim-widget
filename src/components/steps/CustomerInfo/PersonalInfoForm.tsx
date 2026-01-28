@@ -15,11 +15,6 @@ interface PersonalInfoFormProps {
   errors: Partial<Record<keyof CustomerInfo, string>>;
   onChange: (field: keyof CustomerInfo, value: string) => void;
   onBlurField?: (field: keyof CustomerInfo) => void;
-  fieldRequirements: {
-    lastNameRequired: boolean;
-    emailRequired: boolean;
-    phoneRequired: boolean;
-  };
 }
 
 export function PersonalInfoForm({
@@ -27,7 +22,6 @@ export function PersonalInfoForm({
   errors,
   onChange,
   onBlurField,
-  fieldRequirements,
 }: PersonalInfoFormProps) {
   const { config } = useWidget();
   const primaryColor = config?.styling.primaryColor;
@@ -54,7 +48,7 @@ export function PersonalInfoForm({
       {/* Last Name */}
       <FormField
         label="Last Name"
-        required={fieldRequirements.lastNameRequired}
+        required
         error={errors.lastName}
         htmlFor="lastName"
       >
@@ -71,7 +65,7 @@ export function PersonalInfoForm({
       {/* Email */}
       <FormField
         label="Email"
-        required={fieldRequirements.emailRequired}
+        required
         error={errors.email}
         htmlFor="email"
         hint="We'll send your appointment confirmation here"
@@ -89,7 +83,7 @@ export function PersonalInfoForm({
       {/* Phone */}
       <FormField
         label="Phone"
-        required={fieldRequirements.phoneRequired}
+        required
         error={errors.phone}
         htmlFor="phone"
         hint="For appointment reminders"

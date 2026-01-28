@@ -7,11 +7,10 @@ import { useEffect } from "react";
 import { EmployeeList } from "./EmployeeList";
 import { StaffSkeleton } from "@/components/shared";
 import { useStaff } from "@/hooks";
-import { useBooking, useWidget } from "@/contexts";
+import { useBooking } from "@/contexts";
 import type { Staff } from "@/types";
 
 export function EmployeeSelection() {
-  const { config } = useWidget();
   const { state, selectStaff } = useBooking();
   const serviceId = state.selectedService?.service.id;
   const locationId = state.selectedLocation?.location?.id;
@@ -25,7 +24,7 @@ export function EmployeeSelection() {
     enabled: hasServiceSelection,
   });
 
-  const isRequired = config?.fieldRequirements.employeeRequired || false;
+  const isRequired = false;
 
   const handleSelectStaff = (staff: Staff) => {
     selectStaff({
@@ -51,7 +50,7 @@ export function EmployeeSelection() {
 
   if (!hasServiceSelection) {
     return (
-      <div className="flex items-center justify-center min-h-[320px] text-sm text-muted-foreground">
+      <div className="flex items-center justify-center min-h-80 text-sm text-muted-foreground">
         Please select a service to choose a staff member.
       </div>
     );

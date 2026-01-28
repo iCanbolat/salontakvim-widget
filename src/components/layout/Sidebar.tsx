@@ -48,12 +48,19 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const visibleSteps = useMemo(() => {
     if (!config?.sidebarMenuItems) return STEP_ORDER;
 
-    return STEP_ORDER.filter((step) => {
-      // Always show confirmation step
-      if (step === "confirmation") return true;
+    const menuItems: Partial<Record<BookingStep, boolean>> = {
+      service: true,
+      employee: true,
+      location: true,
+      dateTime: true,
+      customerInfo: true,
+      extras: config.sidebarMenuItems.extras !== false,
+      payment: config.sidebarMenuItems.payment !== false,
+    };
 
-      // Check if step is enabled in config
-      return config.sidebarMenuItems[step] !== false;
+    return STEP_ORDER.filter((step) => {
+      if (step === "confirmation") return true;
+      return menuItems[step] !== false;
     });
   }, [config?.sidebarMenuItems]);
 
@@ -92,7 +99,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                     isCurrent &&
                       "bg-primary text-primary-foreground ring-2 ring-primary/20",
                     isCompleted && "bg-primary text-primary-foreground",
-                    isUpcoming && "bg-muted text-muted-foreground"
+                    isUpcoming && "bg-muted text-muted-foreground",
                   )}
                 >
                   {isCompleted ? (
@@ -144,7 +151,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 "flex items-center gap-3 rounded-lg p-3 transition-colors",
                 isCurrent && "bg-primary/10 border border-primary/20",
                 isCompleted && "text-muted-foreground",
-                isUpcoming && "text-muted-foreground/50"
+                isUpcoming && "text-muted-foreground/50",
               )}
             >
               {/* Step indicator */}
@@ -153,7 +160,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                   "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-medium text-sm",
                   isCurrent && "bg-primary text-primary-foreground",
                   isCompleted && "bg-primary text-primary-foreground",
-                  isUpcoming && "bg-muted text-muted-foreground"
+                  isUpcoming && "bg-muted text-muted-foreground",
                 )}
               >
                 {isCompleted ? (
@@ -167,7 +174,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <span
                 className={cn(
                   "text-sm font-medium",
-                  isCurrent && "text-foreground"
+                  isCurrent && "text-foreground",
                 )}
               >
                 {STEP_LABELS[step]}

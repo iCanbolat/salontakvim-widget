@@ -7,7 +7,6 @@
 export type {
   LayoutType,
   SidebarMenuItems,
-  FieldRequirements,
   ThemeConfig,
   WidgetSettings,
   StoreInfo,

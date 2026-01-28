@@ -49,7 +49,7 @@ export function StepsLayout({
 
   return (
     <div className="w-full">
-      <div className="flex flex-col max-w-5xl mx-auto">
+      <div className="flex flex-col mx-auto">
         {/* Desktop: Sidebar + Content in fixed height container */}
         <div className="hidden md:flex lg:h-[600px]">
           {/* Sidebar */}

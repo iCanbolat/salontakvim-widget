@@ -29,7 +29,7 @@ export interface Service {
   capacity: number;
   bufferTimeBefore: number;
   bufferTimeAfter: number;
-  color?: string;
+  categoryColor?: string;
   image?: string;
   categoryId?: string;
   categoryName?: string;

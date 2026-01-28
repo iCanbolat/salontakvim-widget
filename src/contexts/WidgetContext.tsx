@@ -28,7 +28,7 @@ interface WidgetProviderProps {
   widgetKey: string;
   slug?: string;
   apiBaseUrl?: string;
-  publicToken?: string;
+  token?: string;
 }
 
 export function WidgetProvider({
@@ -36,7 +36,7 @@ export function WidgetProvider({
   widgetKey,
   slug,
   apiBaseUrl,
-  publicToken,
+  token,
 }: WidgetProviderProps) {
   const [state, setState] = useState<WidgetState>({
     config: null,
@@ -51,9 +51,9 @@ export function WidgetProvider({
         widgetKey,
         slug,
         baseUrl: apiBaseUrl,
-        token: publicToken,
+        token: token,
       }),
-    [apiBaseUrl, publicToken, slug, widgetKey]
+    [apiBaseUrl, token, slug, widgetKey],
   );
 
   /**
@@ -111,7 +111,7 @@ export function WidgetProvider({
    */
   useEffect(() => {
     fetchConfig();
-  }, [widgetKey, slug, publicToken]); // Re-fetch if widget key/slug or token changes
+  }, [widgetKey, slug, token]); // Re-fetch if widget key/slug or token changes
 
   const value: WidgetContextValue = {
     ...state,

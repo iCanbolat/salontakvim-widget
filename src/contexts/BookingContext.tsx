@@ -95,7 +95,7 @@ interface BookingContextValue {
 }
 
 const BookingContext = createContext<BookingContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 interface BookingProviderProps {
@@ -134,12 +134,19 @@ export function BookingProvider({ children }: BookingProviderProps) {
   const bookingSteps = useMemo(() => {
     if (!config?.sidebarMenuItems) return ALL_BOOKING_STEPS;
 
-    return ALL_BOOKING_STEPS.filter((step) => {
-      // Always include confirmation
-      if (step === "confirmation") return true;
+    const menuItems = {
+      service: true,
+      employee: true,
+      location: true,
+      dateTime: true,
+      customerInfo: true,
+      extras: config.sidebarMenuItems.extras !== false,
+      payment: config.sidebarMenuItems.payment !== false,
+    } as Partial<Record<BookingStep, boolean>>;
 
-      // Check if step is enabled in config
-      return config.sidebarMenuItems[step] !== false;
+    return ALL_BOOKING_STEPS.filter((step) => {
+      if (step === "confirmation") return true;
+      return menuItems[step] !== false;
     });
   }, [config?.sidebarMenuItems]);
 
@@ -151,11 +158,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
   const canGoNext = useCallback(() => {
     if (!config) return false;
 
-    const validation = validationService.validateStep(
-      state.currentStep,
-      state,
-      config.fieldRequirements
-    );
+    const validation = validationService.validateStep(state.currentStep, state);
 
     return validation.isValid;
   }, [state, config]);
@@ -297,14 +300,14 @@ export function BookingProvider({ children }: BookingProviderProps) {
   const addExtra = useCallback((extra: SelectedExtra) => {
     setState((prev: AppointmentState) => {
       const exists = prev.selectedExtras.find(
-        (e) => e.extra.id === extra.extra.id
+        (e) => e.extra.id === extra.extra.id,
       );
       if (exists) {
         // Update quantity
         return {
           ...prev,
           selectedExtras: prev.selectedExtras.map((e) =>
-            e.extra.id === extra.extra.id ? extra : e
+            e.extra.id === extra.extra.id ? extra : e,
           ),
         };
       }
@@ -334,11 +337,11 @@ export function BookingProvider({ children }: BookingProviderProps) {
       setState((prev: AppointmentState) => ({
         ...prev,
         selectedExtras: prev.selectedExtras.map((e) =>
-          e.extra.id === extraId ? { ...e, quantity } : e
+          e.extra.id === extraId ? { ...e, quantity } : e,
         ),
       }));
     },
-    []
+    [],
   );
 
   /**
@@ -414,7 +417,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
       // Clear draft on successful confirmation
       storageService.clearDraft();
     },
-    []
+    [],
   );
 
   /**
@@ -424,7 +427,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
     const servicePrice = state.selectedService?.service.price || 0;
     const extrasPrice = state.selectedExtras.reduce(
       (sum, extra) => sum + extra.extra.price * extra.quantity,
-      0
+      0,
     );
     const subtotal = servicePrice + extrasPrice;
     const discount = state.paymentInfo?.discount || 0;
