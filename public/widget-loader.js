@@ -46,7 +46,7 @@
   // Validate widget key
   if (!widgetKey && !slug) {
     console.error(
-      "[SalonTakvim Widget] Missing required attribute: data-widget-key or data-slug"
+      "[SalonTakvim Widget] Missing required attribute: data-widget-key or data-slug",
     );
     return;
   }
@@ -125,12 +125,18 @@
   function createContainer() {
     let container;
 
+    // Prefer a fixed container if present
+    const fixedContainer = document.getElementById("salontakvim-widget");
+    if (fixedContainer) {
+      return fixedContainer;
+    }
+
     if (containerSelector) {
       // User specified a container selector
       container = document.querySelector(containerSelector);
       if (!container) {
         console.error(
-          `[SalonTakvim Widget] Container not found: ${containerSelector}`
+          `[SalonTakvim Widget] Container not found: ${containerSelector}`,
         );
         return null;
       }
@@ -151,11 +157,14 @@
       } else {
         // Create new container after the script
         container = document.createElement("div");
-        container.id = `salontakvim-widget-${widgetKey || slug || "embed"}`;
+        const defaultId = "salontakvim-widget";
+        container.id = document.getElementById(defaultId)
+          ? `salontakvim-widget-${widgetKey || slug || "embed"}`
+          : defaultId;
         container.className = "salontakvim-widget-container";
         currentScript.parentNode.insertBefore(
           container,
-          currentScript.nextSibling
+          currentScript.nextSibling,
         );
       }
     }
