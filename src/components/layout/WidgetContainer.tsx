@@ -38,7 +38,7 @@ export function WidgetContainer({
         <div
           className={cn(
             "flex",
-            isSidebarLayout ? "flex-col md:flex-row" : "flex-col"
+            isSidebarLayout ? "flex-col md:flex-row" : "flex-col",
           )}
         >
           {/* Sidebar - hidden on mobile in sidebar layout */}
@@ -49,7 +49,9 @@ export function WidgetContainer({
           )}
 
           {/* Main content */}
-          <main className="flex-1 min-h-[500px]">{children}</main>
+          <main className="flex-1 min-h-[400px] md:min-h-[500px]">
+            {children}
+          </main>
         </div>
       </Card>
     </div>

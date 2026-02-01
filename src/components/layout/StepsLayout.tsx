@@ -56,7 +56,7 @@ export function StepsLayout({
           <aside
             className={cn(
               "flex flex-col shrink-0 border-r overflow-y-auto transition-all duration-300",
-              isSidebarCollapsed ? "w-16" : "w-80"
+              isSidebarCollapsed ? "w-16" : "w-80",
             )}
             style={{
               backgroundColor:
@@ -147,7 +147,7 @@ export function StepsLayout({
             {/* Step Content */}
             <div
               ref={mobileScrollContainerRef}
-              className="p-4 h-[500px] overflow-auto"
+              className="p-4 h-[400px] overflow-auto"
             >
               {children}
             </div>
