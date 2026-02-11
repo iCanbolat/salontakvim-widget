@@ -130,6 +130,17 @@ export class ApiService {
   private baseUrl: string;
   private token?: string;
 
+  private normalizeBaseUrl(): string {
+    let normalizedBaseUrl = this.baseUrl;
+    if (normalizedBaseUrl.endsWith("/api")) {
+      normalizedBaseUrl = normalizedBaseUrl.slice(0, -4);
+    }
+    if (normalizedBaseUrl.endsWith("/")) {
+      normalizedBaseUrl = normalizedBaseUrl.slice(0, -1);
+    }
+    return normalizedBaseUrl;
+  }
+
   constructor(
     widgetKeyOrOptions:
       | string
@@ -160,13 +171,7 @@ export class ApiService {
    */
   private buildUrl(endpoint: string): string {
     // Normalize baseUrl - remove trailing /api if present to avoid duplication
-    let normalizedBaseUrl = this.baseUrl;
-    if (normalizedBaseUrl.endsWith("/api")) {
-      normalizedBaseUrl = normalizedBaseUrl.slice(0, -4);
-    }
-    if (normalizedBaseUrl.endsWith("/")) {
-      normalizedBaseUrl = normalizedBaseUrl.slice(0, -1);
-    }
+    const normalizedBaseUrl = this.normalizeBaseUrl();
 
     const prefix = this.slug
       ? `/api/public/store/${this.slug}`
@@ -193,12 +198,76 @@ export class ApiService {
     return url.toString();
   }
 
+  private shouldRefreshToken(error: unknown): boolean {
+    if (!(error instanceof ApiRequestError)) {
+      return false;
+    }
+    if (!this.slug) {
+      return false;
+    }
+    if (error.statusCode !== 401 && error.statusCode !== 403) {
+      return false;
+    }
+    const message = (error.message || "").toLowerCase();
+    return message.includes("token");
+  }
+
+  private async refreshToken(): Promise<boolean> {
+    if (!this.slug) {
+      return false;
+    }
+
+    const baseUrl = this.normalizeBaseUrl();
+    const url = `${baseUrl}/public/embed/${this.slug}/bootstrap`;
+    const response = await fetchWithRetry<{
+      token: string;
+      apiBaseUrl?: string;
+      widgetKey?: string;
+      slug?: string;
+    }>(url);
+
+    if (response.apiBaseUrl) {
+      this.baseUrl = response.apiBaseUrl;
+    }
+    if (response.widgetKey) {
+      this.widgetKey = response.widgetKey;
+    }
+    if (response.slug) {
+      this.slug = response.slug;
+    }
+    if (response.token) {
+      this.token = response.token;
+      return true;
+    }
+
+    return false;
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options?: RequestInit,
+  ): Promise<T> {
+    const url = this.buildUrl(endpoint);
+
+    try {
+      return await fetchWithRetry<T>(url, options);
+    } catch (error) {
+      if (this.shouldRefreshToken(error)) {
+        const refreshed = await this.refreshToken();
+        if (refreshed) {
+          const retryUrl = this.buildUrl(endpoint);
+          return fetchWithRetry<T>(retryUrl, options);
+        }
+      }
+      throw error;
+    }
+  }
+
   /**
    * Get widget configuration
    */
   async getWidgetConfig(): Promise<WidgetConfig> {
-    const url = this.buildUrl("/config");
-    return fetchWithRetry<WidgetConfig>(url);
+    return this.request<WidgetConfig>("/config");
   }
 
   /**
@@ -206,8 +275,7 @@ export class ApiService {
    */
   async getServices(locationId?: string): Promise<ServiceResponse> {
     const params = locationId ? `?locationId=${locationId}` : "";
-    const url = this.buildUrl(`/services${params}`);
-    return fetchWithRetry<ServiceResponse>(url);
+    return this.request<ServiceResponse>(`/services${params}`);
   }
 
   /**
@@ -215,8 +283,7 @@ export class ApiService {
    * @param serviceId - Service ID to get extras for
    */
   async getServiceExtras(serviceId: string): Promise<ServiceExtrasResponse> {
-    const url = this.buildUrl(`/services/${serviceId}/extras`);
-    return fetchWithRetry<ServiceExtrasResponse>(url);
+    return this.request<ServiceExtrasResponse>(`/services/${serviceId}/extras`);
   }
 
   /**
@@ -231,8 +298,7 @@ export class ApiService {
     if (serviceId) params.append("serviceId", serviceId);
     if (locationId) params.append("locationId", locationId);
     const query = params.toString();
-    const url = this.buildUrl(query ? `/staff?${query}` : "/staff");
-    return fetchWithRetry<StaffResponse>(url);
+    return this.request<StaffResponse>(query ? `/staff?${query}` : "/staff");
   }
 
   /**
@@ -241,8 +307,7 @@ export class ApiService {
    */
   async getLocations(serviceId?: string): Promise<LocationResponse> {
     const params = serviceId ? `?serviceId=${serviceId}` : "";
-    const url = this.buildUrl(`/locations${params}`);
-    return fetchWithRetry<LocationResponse>(url);
+    return this.request<LocationResponse>(`/locations${params}`);
   }
 
   /**
@@ -273,8 +338,9 @@ export class ApiService {
       params.append("extrasDurationMinutes", extrasDurationMinutes.toString());
     }
 
-    const url = this.buildUrl(`/availability?${params.toString()}`);
-    return fetchWithRetry<AvailabilityResponse>(url);
+    return this.request<AvailabilityResponse>(
+      `/availability?${params.toString()}`,
+    );
   }
 
   /**
@@ -284,8 +350,7 @@ export class ApiService {
   async createAppointment(
     appointmentData: CreateAppointmentRequest,
   ): Promise<AppointmentResponse> {
-    const url = this.buildUrl("/appointments");
-    return fetchWithRetry<AppointmentResponse>(url, {
+    return this.request<AppointmentResponse>("/appointments", {
       method: "POST",
       body: JSON.stringify(appointmentData),
     });
@@ -300,8 +365,7 @@ export class ApiService {
     amount?: number;
     guestEmail?: string;
   }): Promise<CouponValidationResponse> {
-    const url = this.buildUrl("/coupons/validate");
-    return fetchWithRetry<CouponValidationResponse>(url, {
+    return this.request<CouponValidationResponse>("/coupons/validate", {
       method: "POST",
       body: JSON.stringify(data),
     });
