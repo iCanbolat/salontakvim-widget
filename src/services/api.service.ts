@@ -218,13 +218,35 @@ export class ApiService {
     }
 
     const baseUrl = this.normalizeBaseUrl();
-    const url = `${baseUrl}/public/embed/${this.slug}/bootstrap`;
-    const response = await fetchWithRetry<{
+    const candidates = [
+      `${baseUrl}/api/public/embed/${this.slug}/bootstrap`,
+      `${baseUrl}/public/embed/${this.slug}/bootstrap`,
+    ];
+
+    let response: {
       token: string;
       apiBaseUrl?: string;
       widgetKey?: string;
       slug?: string;
-    }>(url);
+    } | null = null;
+
+    for (const url of candidates) {
+      try {
+        response = await fetchWithRetry<{
+          token: string;
+          apiBaseUrl?: string;
+          widgetKey?: string;
+          slug?: string;
+        }>(url);
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!response) {
+      return false;
+    }
 
     if (response.apiBaseUrl) {
       this.baseUrl = response.apiBaseUrl;
