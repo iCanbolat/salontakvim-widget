@@ -45,7 +45,7 @@ export function StepsLayout({
 
   const isConfirmationStep = state.currentStep === "confirmation";
   const primaryLabel = isConfirmationStep ? "Confirm Appointment" : "Next";
-  const showNavigation = !(isConfirmationStep && isConfirmSuccess);
+  const showNavigation = !isConfirmationStep;
 
   return (
     <div className="w-full">

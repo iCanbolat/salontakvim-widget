@@ -142,15 +142,39 @@ export class ValidationService {
   /**
    * Validate payment step
    */
-  validatePayment(hasPaymentMethod: boolean, isFree: boolean): StepValidation {
+  validatePayment(
+    paymentInfo: {
+      method?: string;
+      paymentStatus?: string;
+      checkoutSessionId?: string;
+    } | null,
+    isFree: boolean,
+  ): StepValidation {
     // If service is free, skip validation
     if (isFree) {
       return { isValid: true, errors: [] };
     }
 
+    if (!paymentInfo?.method) {
+      return {
+        isValid: false,
+        errors: ["Please select a payment method"],
+      };
+    }
+
+    if (
+      paymentInfo.method === "stripe" &&
+      (paymentInfo.paymentStatus !== "paid" || !paymentInfo.checkoutSessionId)
+    ) {
+      return {
+        isValid: false,
+        errors: ["Please complete the Stripe payment to continue"],
+      };
+    }
+
     return {
-      isValid: hasPaymentMethod,
-      errors: hasPaymentMethod ? [] : ["Please select a payment method"],
+      isValid: true,
+      errors: [],
     };
   }
 
@@ -183,7 +207,7 @@ export class ValidationService {
 
       case "payment":
         return this.validatePayment(
-          !!state.paymentInfo?.method,
+          state.paymentInfo || null,
           state.paymentInfo?.total === 0,
         );
 

@@ -3,16 +3,15 @@
  * Final step to review and confirm appointment
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { AppointmentDetails } from "./AppointmentDetails";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CheckCircle, AlertCircle, Tag } from "lucide-react";
+import { CheckCircle, AlertCircle } from "lucide-react";
 import { useBooking, useWidget } from "@/contexts";
-import { validationService } from "@/services/validation.service";
 
 interface ConfirmationStepProps {
   isSuccess: boolean;
+  isProcessing?: boolean;
   publicNumber: string | null;
   error: string | null;
   onStartNew: () => void;
@@ -20,88 +19,19 @@ interface ConfirmationStepProps {
 
 export function ConfirmationStep({
   isSuccess,
+  isProcessing = false,
   publicNumber,
   error,
   onStartNew,
 }: ConfirmationStepProps) {
-  const { config, apiService } = useWidget();
-  const { state, setPaymentInfo, getPriceBreakdown } = useBooking();
+  const { config } = useWidget();
+  const { state, getPriceBreakdown } = useBooking();
 
   const currency = config?.store.currency || "USD";
   const priceBreakdown = useMemo(
     () => getPriceBreakdown(),
     [getPriceBreakdown],
   );
-  const [couponCode, setCouponCode] = useState(
-    state.paymentInfo?.couponCode || "",
-  );
-  const [couponError, setCouponError] = useState<string | null>(null);
-  const [couponApplying, setCouponApplying] = useState(false);
-  const [couponApplied, setCouponApplied] = useState(false);
-
-  useEffect(() => {
-    setCouponCode(state.paymentInfo?.couponCode || "");
-    setCouponApplied(!!state.paymentInfo?.couponCode);
-  }, [state.paymentInfo?.couponCode]);
-
-  const handleApplyCoupon = async () => {
-    const code = couponCode.trim().toUpperCase();
-    if (!code) {
-      setCouponError("Please enter a coupon code");
-      return;
-    }
-
-    if (!validationService.isValidCouponCode(code)) {
-      setCouponError("Invalid coupon format");
-      return;
-    }
-
-    setCouponError(null);
-    setCouponApplying(true);
-
-    try {
-      if (!apiService) {
-        throw new Error("Widget is not ready. Please try again.");
-      }
-
-      const response = await apiService.validateCoupon({
-        code,
-        serviceId: state.selectedService?.service.id,
-        amount: priceBreakdown.subtotal,
-        guestEmail: state.customerInfo?.email || undefined,
-      });
-
-      const discount = Number(response.discountAmount || 0);
-      const total = Math.max(0, priceBreakdown.subtotal - discount);
-      setPaymentInfo({
-        method: state.paymentInfo?.method || "cash",
-        couponCode: code,
-        discount,
-        subtotal: priceBreakdown.subtotal,
-        total,
-      });
-      setCouponApplied(true);
-    } catch (err: any) {
-      setCouponError(err?.message || "Coupon could not be applied");
-      setCouponApplied(false);
-    } finally {
-      setCouponApplying(false);
-    }
-  };
-
-  const handleClearCoupon = () => {
-    setCouponCode("");
-    setCouponApplied(false);
-    setCouponError(null);
-    setPaymentInfo({
-      method: state.paymentInfo?.method || "cash",
-      couponCode: undefined,
-      discount: 0,
-      subtotal: priceBreakdown.subtotal,
-      total: priceBreakdown.subtotal,
-    });
-  };
-
   // Success state
   if (isSuccess && publicNumber) {
     return (
@@ -169,62 +99,19 @@ export function ConfirmationStep({
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Review & Confirm</h2>
         <p className="text-muted-foreground">
-          Please review your appointment details before confirming
+          {isProcessing
+            ? "Payment completed. Finalizing your appointment..."
+            : "Reviewing your appointment details."}
         </p>
       </div>
 
       {/* Appointment Details */}
-      <div className="max-w-2xl mx-auto space-y-3">
+      <div className="max-w-2xl mx-auto">
         <AppointmentDetails
           appointment={state}
           currency={currency}
           priceBreakdown={priceBreakdown}
         />
-
-        {/* Coupon */}
-        <div className="rounded-lg border p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Tag className="h-4 w-4 text-muted-foreground" />
-              <p className="font-medium">Have a coupon?</p>
-            </div>
-            {couponApplied && (
-              <span className="text-xs text-emerald-600 font-medium">
-                Applied
-              </span>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              placeholder="Enter code"
-              className="uppercase"
-              disabled={couponApplying}
-            />
-            {couponApplied ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClearCoupon}
-                disabled={couponApplying}
-              >
-                Remove
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleApplyCoupon}
-                disabled={couponApplying}
-              >
-                Apply
-              </Button>
-            )}
-          </div>
-          {couponError && (
-            <p className="text-xs text-destructive">{couponError}</p>
-          )}
-        </div>
       </div>
 
       {/* Error Message */}
@@ -232,6 +119,14 @@ export function ConfirmationStep({
         <div className="flex items-center gap-3 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <p className="text-sm font-medium">{error}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex justify-center pt-2">
+          <Button variant="outline" onClick={onStartNew}>
+            Book Another Appointment
+          </Button>
         </div>
       )}
 

@@ -13,6 +13,7 @@ import {
   ExtrasSelection,
   DateTimeSelection,
   CustomerInfoStep,
+  PaymentStep,
   ConfirmationStep,
 } from "./steps";
 import { LoadingSpinner } from "./shared";
@@ -29,6 +30,7 @@ export function BookingWidget() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [confirmSuccess, setConfirmSuccess] = useState(false);
   const [publicNumber, setPublicNumber] = useState<string | null>(null);
+  const [autoConfirmPending, setAutoConfirmPending] = useState(false);
   const prevStepIndexRef = useRef(currentStepIndex);
 
   useLayoutEffect(() => {
@@ -75,6 +77,92 @@ export function BookingWidget() {
     }
   }, [state.currentStep, config?.sidebarMenuItems, nextStep]);
 
+  const handleConfirm = async () => {
+    if (
+      !apiService ||
+      !state.selectedService ||
+      !state.selectedDateTime ||
+      !state.customerInfo
+    ) {
+      setConfirmError("Missing required booking information");
+      return;
+    }
+
+    setIsConfirming(true);
+    setConfirmError(null);
+
+    try {
+      const appointmentData = {
+        serviceId: state.selectedService.service.id,
+        staffId: state.selectedStaff?.staff?.id || undefined,
+        locationId: state.selectedLocation?.location?.id || undefined,
+        startDateTime: `${state.selectedDateTime.date}T${state.selectedDateTime.time}:00`,
+        numberOfPeople: state.numberOfPeople?.count || 1,
+        guestFirstName: state.customerInfo.firstName,
+        guestLastName: state.customerInfo.lastName || "",
+        guestEmail: state.customerInfo.email || "",
+        guestPhone: state.customerInfo.phone || "",
+        customerNotes: state.customerInfo.notes || "",
+        extrasData: state.selectedExtras.map((extra) => ({
+          extraId: extra.extra.id,
+          quantity: extra.quantity,
+        })),
+        couponCode: state.paymentInfo?.couponCode || undefined,
+        paymentSessionId: state.paymentInfo?.checkoutSessionId || undefined,
+      };
+
+      const response = await apiService.createAppointment(appointmentData);
+      setPublicNumber(response.publicNumber);
+      setConfirmSuccess(true);
+    } catch (err: any) {
+      setConfirmError(err?.message || "Failed to create appointment");
+      console.error("Appointment creation failed:", err);
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  useEffect(() => {
+    const paymentStepEnabled = config?.sidebarMenuItems?.payment !== false;
+    const isPaid = state.paymentInfo?.paymentStatus === "paid";
+
+    if (
+      paymentStepEnabled &&
+      state.currentStep === "payment" &&
+      isPaid &&
+      !confirmSuccess &&
+      !isConfirming
+    ) {
+      setAutoConfirmPending(true);
+      nextStep();
+    }
+  }, [
+    config?.sidebarMenuItems?.payment,
+    state.currentStep,
+    state.paymentInfo?.paymentStatus,
+    confirmSuccess,
+    isConfirming,
+    nextStep,
+  ]);
+
+  useEffect(() => {
+    if (
+      autoConfirmPending &&
+      state.currentStep === "confirmation" &&
+      !isConfirming &&
+      !confirmSuccess
+    ) {
+      setAutoConfirmPending(false);
+      void handleConfirm();
+    }
+  }, [
+    autoConfirmPending,
+    state.currentStep,
+    isConfirming,
+    confirmSuccess,
+    handleConfirm,
+  ]);
+
   // Loading state
   if (isLoading) {
     return (
@@ -118,54 +206,11 @@ export function BookingWidget() {
     );
   }
 
-  const handleConfirm = async () => {
-    if (
-      !apiService ||
-      !state.selectedService ||
-      !state.selectedDateTime ||
-      !state.customerInfo
-    ) {
-      setConfirmError("Missing required booking information");
-      return;
-    }
-
-    setIsConfirming(true);
-    setConfirmError(null);
-
-    try {
-      const appointmentData = {
-        serviceId: state.selectedService.service.id,
-        staffId: state.selectedStaff?.staff?.id || undefined,
-        locationId: state.selectedLocation?.location?.id || undefined,
-        startDateTime: `${state.selectedDateTime.date}T${state.selectedDateTime.time}:00`,
-        numberOfPeople: state.numberOfPeople?.count || 1,
-        guestFirstName: state.customerInfo.firstName,
-        guestLastName: state.customerInfo.lastName || "",
-        guestEmail: state.customerInfo.email || "",
-        guestPhone: state.customerInfo.phone || "",
-        customerNotes: state.customerInfo.notes || "",
-        extrasData: state.selectedExtras.map((extra) => ({
-          extraId: extra.extra.id,
-          quantity: extra.quantity,
-        })),
-        couponCode: state.paymentInfo?.couponCode || undefined,
-      };
-
-      const response = await apiService.createAppointment(appointmentData);
-      setPublicNumber(response.publicNumber);
-      setConfirmSuccess(true);
-    } catch (err: any) {
-      setConfirmError(err?.message || "Failed to create appointment");
-      console.error("Appointment creation failed:", err);
-    } finally {
-      setIsConfirming(false);
-    }
-  };
-
   const handleStartNew = () => {
     setConfirmSuccess(false);
     setConfirmError(null);
     setPublicNumber(null);
+    setAutoConfirmPending(false);
     resetBooking();
   };
 
@@ -202,16 +247,13 @@ export function BookingWidget() {
         return <CustomerInfoStep />;
 
       case "payment":
-        return (
-          <div className="text-center py-12">
-            <LoadingSpinner size="lg" text="Processing payment..." />
-          </div>
-        );
+        return <PaymentStep />;
 
       case "confirmation":
         return (
           <ConfirmationStep
             isSuccess={confirmSuccess && !!publicNumber}
+            isProcessing={isConfirming}
             publicNumber={publicNumber}
             error={confirmError}
             onStartNew={handleStartNew}

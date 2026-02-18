@@ -13,6 +13,8 @@ import type {
   CreateAppointmentRequest,
   AppointmentResponse,
   CouponValidationResponse,
+  CreateWidgetCheckoutRequest,
+  WidgetCheckoutSessionResponse,
   ApiError,
 } from "@/types";
 
@@ -391,6 +393,18 @@ export class ApiService {
       method: "POST",
       body: JSON.stringify(data),
     });
+  }
+
+  async createPaymentCheckoutSession(
+    data: CreateWidgetCheckoutRequest,
+  ): Promise<WidgetCheckoutSessionResponse> {
+    return this.request<WidgetCheckoutSessionResponse>(
+      "/payments/checkout-session",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+    );
   }
 
   /**

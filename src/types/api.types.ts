@@ -130,6 +130,31 @@ export interface CreateAppointmentRequest {
   extrasData?: AppointmentExtraData[];
   customFieldValues?: CustomFieldValue[];
   couponCode?: string;
+  paymentSessionId?: string;
+}
+
+export interface CreateWidgetCheckoutRequest {
+  serviceId: string;
+  extrasData?: AppointmentExtraData[];
+  couponCode?: string;
+  guestEmail?: string;
+  amountType: "full" | "deposit";
+  depositPercentage?: number;
+  successUrl: string;
+  cancelUrl: string;
+}
+
+export interface WidgetCheckoutSessionResponse {
+  skipped: boolean;
+  reason?: string;
+  checkoutUrl?: string;
+  checkoutClientSecret?: string;
+  sessionId?: string;
+  amountType?: "full" | "deposit";
+  payableAmount?: number;
+  totalAmount?: number;
+  depositAmount?: number;
+  currency?: string;
 }
 
 export interface AppointmentExtraData {

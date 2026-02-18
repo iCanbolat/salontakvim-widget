@@ -77,10 +77,15 @@ export interface CustomerInfo {
 // Payment information
 export interface PaymentInfo {
   method: "cash" | "card" | "online" | "stripe" | "paypal";
+  amountType?: "full" | "deposit";
+  checkoutSessionId?: string;
+  paymentStatus?: "pending" | "paid";
   couponCode?: string;
   discount?: number;
   subtotal: number;
   total: number;
+  payableNow?: number;
+  remainingAmount?: number;
 }
 
 // Number of people

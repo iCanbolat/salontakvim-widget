@@ -24,7 +24,6 @@
     document.currentScript?.getAttribute("data-cdn") || scriptOrigin;
   const CDN_URL = assetBase;
   const WIDGET_CSS = `${CDN_URL}/widget.css`;
-  const WIDGET_JS = `${CDN_URL}/widget.js`;
   const DEFAULT_MODE = "inline";
 
   // Get current script element
@@ -42,6 +41,12 @@
   const token = currentScript.getAttribute("data-token");
   const apiBase = currentScript.getAttribute("data-api-base");
   const slug = currentScript.getAttribute("data-slug");
+  const widgetVersion = currentScript.getAttribute("data-widget-version");
+
+  const versionKey = widgetVersion || (token ? token.slice(0, 24) : "");
+  const WIDGET_JS = `${CDN_URL}/widget.js${
+    versionKey ? `?v=${encodeURIComponent(versionKey)}` : ""
+  }`;
 
   // Validate widget key
   if (!widgetKey && !slug) {
@@ -90,9 +95,20 @@
    * Load JS file
    */
   function loadJS() {
-    // Check if JS already loaded
-    if (window.SalonTakvimWidget) {
+    const loadedBundleSrc = window.__SalonTakvimWidgetBundleSrc;
+
+    // Check if the expected bundle is already loaded
+    if (window.SalonTakvimWidget && loadedBundleSrc === WIDGET_JS) {
       return Promise.resolve();
+    }
+
+    // If a different bundle was loaded before, reset global before loading new one
+    if (window.SalonTakvimWidget && loadedBundleSrc !== WIDGET_JS) {
+      try {
+        delete window.SalonTakvimWidget;
+      } catch {
+        window.SalonTakvimWidget = undefined;
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -109,6 +125,7 @@
       const checkInterval = setInterval(() => {
         attempts++;
         if (window.SalonTakvimWidget) {
+          window.__SalonTakvimWidgetBundleSrc = WIDGET_JS;
           clearInterval(checkInterval);
           resolve();
         } else if (attempts >= maxAttempts) {

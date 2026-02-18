@@ -56,6 +56,15 @@ export interface WidgetConfig {
   showCompanyEmail: boolean;
   companyEmail?: string;
   sidebarMenuItems: SidebarMenuItems;
+  payment: {
+    enabled: boolean;
+    canProcessPayments: boolean;
+    provider: "stripe_connect" | null;
+    allowPartial: boolean;
+    defaultDepositPercentage: number;
+    fixedDepositAmount: number;
+    publishableKey?: string;
+  };
   styling: ThemeConfig;
   settings: WidgetSettings;
 }

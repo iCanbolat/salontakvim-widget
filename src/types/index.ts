@@ -30,6 +30,8 @@ export type {
   TimeSlot,
   AvailabilityResponse,
   CreateAppointmentRequest,
+  CreateWidgetCheckoutRequest,
+  WidgetCheckoutSessionResponse,
   AppointmentExtraData,
   CustomFieldValue,
   AppointmentResponse,
