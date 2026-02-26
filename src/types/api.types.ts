@@ -122,10 +122,10 @@ export interface CreateAppointmentRequest {
   locationId?: string;
   startDateTime: string; // ISO 8601 format
   numberOfPeople?: number;
-  guestFirstName?: string;
-  guestLastName?: string;
-  guestEmail: string;
-  guestPhone: string;
+  customerFirstName?: string;
+  customerLastName?: string;
+  customerEmail: string;
+  customerPhone: string;
   customerNotes?: string;
   extrasData?: AppointmentExtraData[];
   customFieldValues?: CustomFieldValue[];
@@ -137,7 +137,7 @@ export interface CreateWidgetCheckoutRequest {
   serviceId: string;
   extrasData?: AppointmentExtraData[];
   couponCode?: string;
-  guestEmail?: string;
+  customerEmail?: string;
   amountType: "full" | "deposit";
   depositPercentage?: number;
   successUrl: string;

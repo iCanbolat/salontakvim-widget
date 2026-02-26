@@ -387,7 +387,7 @@ export class ApiService {
     code: string;
     serviceId?: string;
     amount?: number;
-    guestEmail?: string;
+    customerEmail?: string;
   }): Promise<CouponValidationResponse> {
     return this.request<CouponValidationResponse>("/coupons/validate", {
       method: "POST",

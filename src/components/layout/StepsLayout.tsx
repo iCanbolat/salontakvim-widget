@@ -44,8 +44,10 @@ export function StepsLayout({
   }, [state.currentStep, isConfirmSuccess]);
 
   const isConfirmationStep = state.currentStep === "confirmation";
+  const isPaymentStepEnabled = config?.sidebarMenuItems?.payment !== false;
   const primaryLabel = isConfirmationStep ? "Confirm Appointment" : "Next";
-  const showNavigation = !isConfirmationStep;
+  const showNavigation =
+    (!isConfirmationStep || !isPaymentStepEnabled) && !isConfirmSuccess;
 
   return (
     <div className="w-full">
@@ -81,7 +83,7 @@ export function StepsLayout({
             <div
               ref={scrollContainerRef}
               className={`flex-1 overflow-y-auto p-6 ${
-                state.currentStep === "confirmation" ? "" : "mb-24"
+                showNavigation ? "mb-24" : ""
               }`}
             >
               <div>{children}</div>

@@ -148,7 +148,7 @@ export function ConfirmationStep({
           </p>
         )}
       </div>
-      <div className="h-10"></div>
+      {/* <div className="h-10"></div> */}
     </div>
   );
 }

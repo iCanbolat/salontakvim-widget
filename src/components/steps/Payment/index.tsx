@@ -120,7 +120,7 @@ export function PaymentStep() {
           quantity: extra.quantity,
         })),
         couponCode: state.paymentInfo?.couponCode,
-        guestEmail: state.customerInfo?.email,
+        customerEmail: state.customerInfo?.email,
         amountType: "deposit",
         successUrl,
         cancelUrl,
@@ -193,7 +193,7 @@ export function PaymentStep() {
         code,
         serviceId: state.selectedService?.service.id,
         amount: price.subtotal,
-        guestEmail: state.customerInfo?.email || undefined,
+        customerEmail: state.customerInfo?.email || undefined,
       });
 
       const discount = Number(response.discountAmount || 0);
