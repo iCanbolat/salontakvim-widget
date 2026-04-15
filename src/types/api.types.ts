@@ -147,6 +147,7 @@ export interface CreateWidgetCheckoutRequest {
 export interface WidgetCheckoutSessionResponse {
   skipped: boolean;
   reason?: string;
+  gateway?: "creem" | "stripe" | "stripe_connect_legacy";
   checkoutUrl?: string;
   checkoutClientSecret?: string;
   sessionId?: string;

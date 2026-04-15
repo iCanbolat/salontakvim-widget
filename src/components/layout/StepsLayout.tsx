@@ -82,9 +82,7 @@ export function StepsLayout({
             {/* Scrollable Content */}
             <div
               ref={scrollContainerRef}
-              className={`flex-1 overflow-y-auto p-6 ${
-                showNavigation ? "mb-24" : ""
-              }`}
+              className="flex-1 overflow-y-auto p-6"
             >
               <div>{children}</div>
             </div>
@@ -92,7 +90,7 @@ export function StepsLayout({
             {/* Navigation Buttons - Fixed at bottom */}
             {showNavigation && (
               <div
-                className="absolute bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 p-4"
+                className="shrink-0 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 p-4"
                 style={navigationStyle}
               >
                 <div className="flex items-center justify-between gap-3">

@@ -28,7 +28,7 @@ export function TimeSlots({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto max-h-[400px] pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20">
       {slots.map((slot) => (
         <Button
           key={slot.startTime}
@@ -38,7 +38,7 @@ export function TimeSlots({
           onClick={() => slot.available && onSelectTime(slot.startTime)}
           className={cn(
             "h-9 min-w-18",
-            !slot.available && "opacity-40 cursor-not-allowed"
+            !slot.available && "opacity-40 cursor-not-allowed",
           )}
         >
           {formatTime12Hour(slot.startTime)}

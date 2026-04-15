@@ -4,13 +4,14 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as DatePickerCalendar } from "@/components/ui/calendar";
 import { TimeSlots } from "./TimeSlots";
 import { BringingAnyoneOption } from "./BringingAnyoneOption";
 import { LoadingSpinner } from "@/components/shared";
 import { useAvailability } from "@/hooks";
 import { useBooking, useWidget } from "@/contexts";
 import { formatDateISO, formatDateLong } from "@/utils";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 export function DateTimeSelection() {
   const { state, selectDateTime, clearDateTime, setNumberOfPeople } =
@@ -166,64 +167,82 @@ export function DateTimeSelection() {
           Choose your preferred Date and Time slot
         </p>
       </div>
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8">
         {/* Calendar */}
-
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleDateSelect}
-          disabled={disabledDates}
-          className="rounded-md border mx-auto"
-        />
+        <div className="flex flex-col items-center lg:items-start">
+          <DatePickerCalendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            disabled={disabledDates}
+            className="rounded-md border shadow-sm"
+          />
+        </div>
 
         {/* Time Slots */}
-        {selectedDate && (
-          <div>
-            <h3 className="text-sm font-medium mb-2">
-              {formatDateLong(selectedDate)}
-            </h3>
+        <div className="flex flex-col min-h-0">
+          {selectedDate ? (
+            <div className="flex flex-col h-full">
+              <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                {formatDateLong(selectedDate)}
+              </h3>
 
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <LoadingSpinner text="Loading times..." />
+              <div className="flex-1 min-h-[200px]">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <LoadingSpinner text="Loading times..." />
+                  </div>
+                ) : error ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center space-y-2">
+                      <p className="text-sm text-destructive font-medium">
+                        Failed to load availability
+                      </p>
+                      <p className="text-xs text-muted-foreground">{error}</p>
+                    </div>
+                  </div>
+                ) : availabilityData && availabilityData.slots.length > 0 ? (
+                  <TimeSlots
+                    slots={filteredSlots}
+                    selectedTime={state.selectedDateTime?.time || null}
+                    onSelectTime={handleTimeSelect}
+                  />
+                ) : availabilityData ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center space-y-2">
+                      <p className="text-sm text-muted-foreground font-medium">
+                        No time slots available
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        The selected staff member is not available on this date.
+                        {state.selectedStaff?.isAny && (
+                          <> Try selecting a specific staff member.</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+                    Unable to load availability
+                  </div>
+                )}
               </div>
-            ) : error ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-center space-y-2">
-                  <p className="text-sm text-destructive font-medium">
-                    Failed to load availability
-                  </p>
-                  <p className="text-xs text-muted-foreground">{error}</p>
-                </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full border-2 border-dashed rounded-lg p-12 text-center">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <CalendarIcon className="w-6 h-6 text-muted-foreground" />
               </div>
-            ) : availabilityData && availabilityData.slots.length > 0 ? (
-              <TimeSlots
-                slots={filteredSlots}
-                selectedTime={state.selectedDateTime?.time || null}
-                onSelectTime={handleTimeSelect}
-              />
-            ) : availabilityData ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-center space-y-2">
-                  <p className="text-sm text-muted-foreground font-medium">
-                    No time slots available
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    The selected staff member is not available on this date.
-                    {state.selectedStaff?.isAny && (
-                      <> Try selecting a specific staff member.</>
-                    )}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                Unable to load availability
-              </div>
-            )}
-          </div>
-        )}
+              <h3 className="font-medium text-muted-foreground">
+                Select a date
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Please pick a date from the calendar to see available time slots
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bringing Anyone Option */}

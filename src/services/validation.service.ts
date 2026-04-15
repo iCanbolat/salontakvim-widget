@@ -162,13 +162,17 @@ export class ValidationService {
       };
     }
 
+    const requiresCheckoutCompletion = ["stripe", "online", "creem"].includes(
+      paymentInfo.method,
+    );
+
     if (
-      paymentInfo.method === "stripe" &&
+      requiresCheckoutCompletion &&
       (paymentInfo.paymentStatus !== "paid" || !paymentInfo.checkoutSessionId)
     ) {
       return {
         isValid: false,
-        errors: ["Please complete the Stripe payment to continue"],
+        errors: ["Please complete the online payment to continue"],
       };
     }
 

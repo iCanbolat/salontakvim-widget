@@ -59,11 +59,12 @@ export interface WidgetConfig {
   payment: {
     enabled: boolean;
     canProcessPayments: boolean;
-    provider: "stripe_connect" | null;
+    provider: "creem" | "stripe_connect_legacy" | null;
     allowPartial: boolean;
     defaultDepositPercentage: number;
     fixedDepositAmount: number;
     publishableKey?: string;
+    checkoutMode?: "redirect";
   };
   styling: ThemeConfig;
   settings: WidgetSettings;

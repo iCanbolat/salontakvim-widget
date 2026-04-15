@@ -76,7 +76,7 @@ export interface CustomerInfo {
 
 // Payment information
 export interface PaymentInfo {
-  method: "cash" | "card" | "online" | "stripe" | "paypal";
+  method: "cash" | "card" | "online" | "stripe" | "creem" | "paypal";
   amountType?: "full" | "deposit";
   checkoutSessionId?: string;
   paymentStatus?: "pending" | "paid";
